@@ -45,5 +45,11 @@ namespace Hearthstone_Deck_Tracker.Enums
 
 		[LocDescription("Enum_ArenaRewardPacks_Uldum")]
 		Uldum = CardSet.ULDUM,
+
+		[LocDescription("Enum_ArenaRewardPacks_Dragons")]
+		Dragons = CardSet.DRAGONS,
+
+		[LocDescription("Enum_ArenaRewardPacks_BlackTemple")]
+		BlackTemple = CardSet.BLACK_TEMPLE,
 	}
 }

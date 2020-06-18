@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Hearthstone_Deck_Tracker.Utility.Extensions;
@@ -37,8 +38,11 @@ namespace Hearthstone_Deck_Tracker.Utility.Analytics
 
 		public string GetValueString(object value)
 		{
-			if(int.TryParse(value.ToString(), out var intValue))
-				return value.ToString();
+			var valStr = value.ToString();
+			if(int.TryParse(valStr, out var intValue))
+				return valStr;
+			if(double.TryParse(valStr, out var floatValue))
+				return floatValue.ToString(CultureInfo.GetCultureInfo("en-US"));
 			return $"\"{Escape(value.ToString())}\"";
 		}
 	}

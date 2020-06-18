@@ -8,7 +8,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HDTTests</RootNamespace>
     <AssemblyName>HDTTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -16,6 +16,7 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -73,6 +74,12 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HearthDb">
+      <HintPath>..\lib\HearthDb.dll</HintPath>
+    </Reference>
+    <Reference Include="HearthMirror">
+      <HintPath>..\lib\HearthMirror.dll</HintPath>
+    </Reference>
     <Reference Include="Rhino.Mocks, Version=3.6.0.0, Culture=neutral, PublicKeyToken=0b3305902db7183f, processorArchitecture=MSIL">
       <HintPath>..\packages\RhinoMocks.3.6.1\lib\net\Rhino.Mocks.dll</HintPath>
       <Private>True</Private>
@@ -113,28 +120,21 @@
     <Compile Include="Hearthstone\ParseCardStringTest.cs" />
     <Compile Include="Hearthstone\Secrets\SecretEventHandlerTest.cs" />
     <Compile Include="Hearthstone\LogReadingTest.cs" />
-    <Compile Include="Hearthstone\WebImportTest.cs" />
     <Compile Include="Hearthstone\DeckTest.cs" />
     <Compile Include="Hearthstone\CardDbTest.cs" />
+    <Compile Include="HsReplay\Utility\ShortIdHelperTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LocUtilTests.cs" />
     <Compile Include="Utility\Twitch\TwitchApiHelperTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HearthDb\HearthDb\HearthDb.csproj">
-      <Project>{7ed14243-e02b-4b94-af00-a67a62c282f0}</Project>
-      <Name>HearthDb</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HearthMirror\HearthMirror\HearthMirror.csproj">
-      <Project>{1694a2f8-645a-4263-a6ab-fc26323fd675}</Project>
-      <Name>HearthMirror</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Hearthstone Deck Tracker\Hearthstone Deck Tracker.csproj">
       <Project>{e63a3f1c-e662-4e62-be43-af27cb9e953d}</Project>
       <Name>Hearthstone Deck Tracker</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Choose>

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HearthDb.Enums;
-using Hearthstone_Deck_Tracker.Enums;
+using Hearthstone_Deck_Tracker.BobsBuddy;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.LogReader.Interfaces;
@@ -146,6 +146,9 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 					if(guessedCardId)
 						entity.Info.GuessedCardState = GuessedCardState.Guessed;
 					game.Entities.Add(id, entity);
+
+					if(gameState.CurrentBlock != null && (entity.CardId?.ToUpper().Contains("HERO") ?? false))
+						gameState.CurrentBlock.HasFullEntityHeroPackets = true;
 				}
 				gameState.SetCurrentEntity(id);
 				if(gameState.DeterminedPlayers)
@@ -173,9 +176,11 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 					if(!game.Entities.ContainsKey(entityId))
 						game.Entities.Add(entityId, new Entity(entityId));
 					var entity = game.Entities[entityId];
-					if(type != "CHANGE_ENTITY" || string.IsNullOrEmpty(entity.CardId))
-					{
+					if(string.IsNullOrEmpty(entity.CardId))
 						entity.CardId = cardId;
+					entity.Info.LatestCardId = cardId;
+					if(type == "SHOW_ENTITY")
+					{
 						if(entity.Info.GuessedCardState != GuessedCardState.None)
 							entity.Info.GuessedCardState = GuessedCardState.Revealed;
 					}
@@ -279,6 +284,7 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 					{
 						switch(actionStartingCardId)
 						{
+							// Todo: Add Demon Hunter
 							case Collectible.Rogue.TradePrinceGallywix:
 								if(!game.Entities.TryGetValue(gameState.LastCardPlayed, out var lastPlayed))
 									break;
@@ -335,13 +341,49 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 								else if(correspondPlayer == game.Opponent.Id)
 									AddKnownCardId(gameState, game.Opponent.LastDiedMinionCardId);
 								break;
-
+							case Collectible.Druid.SecureTheDeck:
+								AddKnownCardId(gameState, Collectible.Druid.Claw, 3);
+								break;
+							case Collectible.Rogue.Waxadred:
+								AddKnownCardId(gameState, NonCollectible.Rogue.Waxadred_WaxadredsCandleToken);
+								break;
+							case Collectible.Neutral.BadLuckAlbatross:
+								AddKnownCardId(gameState, NonCollectible.Neutral.BadLuckAlbatross_AlbatrossToken, 2);
+								break;
+							case Collectible.Priest.ReliquaryOfSouls:
+								AddKnownCardId(gameState, NonCollectible.Priest.ReliquaryofSouls_ReliquaryPrimeToken);
+								break;
+							case Collectible.Mage.AstromancerSolarian:
+								AddKnownCardId(gameState, NonCollectible.Mage.AstromancerSolarian_SolarianPrimeToken);
+								break;
+							case Collectible.Warlock.KanrethadEbonlocke:
+								AddKnownCardId(gameState, NonCollectible.Warlock.KanrethadEbonlocke_KanrethadPrimeToken);
+								break;
+							case Collectible.Paladin.MurgurMurgurgle:
+								AddKnownCardId(gameState, NonCollectible.Paladin.MurgurMurgurgle_MurgurglePrimeToken);
+								break;
+							case Collectible.Rogue.Akama:
+								AddKnownCardId(gameState, NonCollectible.Rogue.Akama_AkamaPrimeToken);
+								break;
+							case Collectible.Druid.ArchsporeMsshifn:
+								AddKnownCardId(gameState, NonCollectible.Druid.ArchsporeMsshifn_MsshifnPrimeToken);
+								break;
+							case Collectible.Shaman.LadyVashj:
+								AddKnownCardId(gameState, NonCollectible.Shaman.LadyVashj_VashjPrimeToken);
+								break;
+							case Collectible.Hunter.ZixorApexPredator:
+								AddKnownCardId(gameState, NonCollectible.Hunter.ZixorApexPredator_ZixorPrimeToken);
+								break;
+							case Collectible.Warrior.KargathBladefist:
+								AddKnownCardId(gameState, NonCollectible.Warrior.KargathBladefist_KargathPrimeToken);
+								break;
 						}
 					}
 					else //POWER
 					{
 						switch(actionStartingCardId)
 						{
+							// Todo: Add Demon Hunter
 							case Collectible.Rogue.GangUp:
 							case Collectible.Hunter.DireFrenzy:
 							case Collectible.Rogue.LabRecruiter:
@@ -475,6 +517,21 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 							case Collectible.Warlock.Impbalming:
 								AddKnownCardId(gameState, NonCollectible.Warlock.Impbalming_WorthlessImpToken, 3);
 								break;
+							case Collectible.Druid.YseraUnleashed:
+								AddKnownCardId(gameState, NonCollectible.Druid.YseraUnleashed_DreamPortalToken, 7);
+								break;
+							case Collectible.Rogue.BloodsailFlybooter:
+								AddKnownCardId(gameState, NonCollectible.Rogue.BloodsailFlybooter_SkyPirateToken, 2);
+								break;
+							case Collectible.Rogue.UmbralSkulker:
+								AddKnownCardId(gameState, NonCollectible.Neutral.TheCoin, 3);
+								break;
+							case Collectible.Neutral.Sathrovarr:
+								AddKnownCardId(gameState, target, 3);
+								break;
+							case Collectible.Neutral.DragonBreeder:
+								AddKnownCardId(gameState, target);
+								break;
 							default:
 								if(playerEntity.Value != null && playerEntity.Value.GetTag(GameTag.CURRENT_PLAYER) == 1
 									&& !gameState.PlayerUsedHeroPower
@@ -533,8 +590,20 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 				{
 					gameState.GameHandler.HandleChameleosReveal(gameState.ChameleosReveal.Item2);
 				}
-
 				gameState.ChameleosReveal = null;
+
+				if(gameState.CurrentBlock?.Type == "TRIGGER"
+					&& gameState.CurrentBlock?.CardId == NonCollectible.Neutral.Baconshop8playerenchantTavernBrawl
+					&& gameState.CurrentBlock?.HasFullEntityHeroPackets == true
+					&& gameState.Turn % 2 == 0)
+				{
+					game.SnapshotBattlegroundsBoardState();
+					if(game.CurrentGameStats != null)
+					{
+						BobsBuddyInvoker.GetInstance(game.CurrentGameStats.GameId, gameState.GetTurnNumber())
+							.StartCombat();
+					}
+				}
 
 				gameState.BlockEnd();
 			}

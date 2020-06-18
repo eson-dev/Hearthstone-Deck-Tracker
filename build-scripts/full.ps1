@@ -22,7 +22,7 @@ $PROD_LATEST = "https://api.github.com/repos/HearthSim/HDT-Releases/releases/lat
 $assemblyInfoFile = "$baseDir\Hearthstone Deck Tracker\Properties\AssemblyInfo.cs"
 $buildDir = "$baseDir\Hearthstone Deck Tracker\bin\x86"
 $hdtReleaseDir = "$buildDir\Hearthstone Deck Tracker"
-$squirrelTools = "$baseDir\packages\squirrel.windows.1.7.8\tools"
+$squirrelTools = "$baseDir\packages\squirrel.windows.1.9.1\tools"
 $signtool = "$squirrelTools\signtool.exe"
 $squirrel = "$squirrelTools\Squirrel.exe"
 $cert = "$baseDir\cert.pfx"
@@ -87,7 +87,7 @@ if (!$dev) {
 
 # Create squirrel build
 $url = if ($dev) { $DEV_LATEST } else { $PROD_LATEST }
-$json = (Invoke-WebRequest $url).Content | ConvertFrom-Json
+$json = (Invoke-WebRequest $url -UseBasicParsing).Content | ConvertFrom-Json
 $wc = New-Object System.Net.WebClient
 $oldFullPkg = $null
 foreach ($asset in $json.assets) {
@@ -105,7 +105,7 @@ nuget pack "$PSScriptRoot\hdt.nuspec" -Version $packageVersion -Properties Confi
 $icon = "$buildDir\Squirrel\Images\HearthstoneDeckTracker.ico"
 $nupkg = "$buildDir\SquirrelNu\HearthstoneDeckTracker.$packageVersion.nupkg"
 $certInfo = "/tr http://timestamp.digicert.com /a /f $cert /p $Env:CERT_PASSWORD"
-& $squirrel --releasify $nupkg --releaseDir=$output --setupIcon=$icon --icon=$icon --no-msi -n $certInfo | Out-Default
+& $squirrel --releasify $nupkg --releaseDir=$output --setupIcon=$icon --icon=$icon --no-msi -n $certInfo --framework-version=net472 | Out-Default
 & $signtool sign /tr "http://timestamp.digicert.com" /a /f $cert /p $Env:CERT_PASSWORD "$output\Setup.exe" | Out-Default
 Move-Item "$output\Setup.exe" "$output\HDT-Installer.exe"
 

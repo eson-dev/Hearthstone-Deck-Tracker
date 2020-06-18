@@ -77,6 +77,18 @@ namespace HearthWatcher.LogReader
 					}
 					catch
 					{
+						try
+						{
+							/*
+							 * The Overwolf log file reader appears to keep files open in read mode even while
+							 * Hearthstone is not running. Since only Hearthstone creates a write lock on the file
+							 * we can reset the content instead of moving or deleting it.
+							 */
+							File.WriteAllText(_filePath, string.Empty);
+						}
+						catch
+						{
+						}
 					}
 				}
 			}
@@ -132,7 +144,7 @@ namespace HearthWatcher.LogReader
 								if(line.StartsWith("D "))
 								{
 									var next = sr.Peek();
-									if(!sr.EndOfStream && !(next == 'D' || next == 'W'))
+									if(!sr.EndOfStream && !(next == 'D' || next == 'W' || next == 'E'))
 										break;
 									var logLine = new LogLine(Info.Name, line);
 									if((!Info.HasFilters || (Info.StartsWithFilters?.Any(x => logLine.LineContent.StartsWith(x)) ?? false)

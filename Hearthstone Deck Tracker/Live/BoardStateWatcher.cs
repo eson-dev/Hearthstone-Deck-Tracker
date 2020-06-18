@@ -62,7 +62,7 @@ namespace Hearthstone_Deck_Tracker.Live
 			var gameType = HearthDbConverter.GetBnetGameType(Core.Game.CurrentGameType, format);
 			var player = Core.Game.MatchInfo?.LocalPlayer;
 			var rank = format == Format.Standard ? player?.StandardRank : player?.WildRank;
-			var legendRank = format == Format.Standard ? player?.StandardLegendRank : player?.WildLegendRank;
+			var legendRank = format == Format.Standard ? player?.Standard.LegendRank : player?.Wild.LegendRank;
 			return new GameStart
 			{
 				Deck = boardState.Player.Deck,
@@ -72,36 +72,57 @@ namespace Hearthstone_Deck_Tracker.Live
 			};
 		}
 
+		private int DbfId(Entity e)
+		{
+			if(e == null)
+				return 0;
+			var card = e.Info.LatestCardId == e.CardId
+				? e.Card
+				: Database.GetCardFromId(e.Info.LatestCardId);
+			return card.DbfIf;
+		}
+
+		private int ZonePosition(Entity e) => e.GetTag(GameTag.ZONE_POSITION);
+
+		private int[] SortedDbfIds(IEnumerable<Entity> entities) => entities.OrderBy(ZonePosition).Select(DbfId).ToArray();
+
+		private int HeroId(Entity playerEntity) => playerEntity.GetTag(GameTag.HERO_ENTITY);
+
+		private int WeaponId(Entity playerEntity) => playerEntity.GetTag(GameTag.WEAPON);
+
+		private Entity Find(Player p, int entityId) => p.PlayerEntities.FirstOrDefault(x => x.Id == entityId);
+
+		private Entity FindHeroPower(Player p) => p.PlayerEntities.FirstOrDefault(x => x.IsHeroPower && x.IsInPlay);
+
+		private BoardStateQuest Quest(Entity questEntity)
+		{
+			if(questEntity == null)
+				return null;
+			return new BoardStateQuest
+			{
+				DbfId = questEntity.Card.DbfIf,
+				Progress = questEntity.GetTag(GameTag.QUEST_PROGRESS),
+				Total = questEntity.GetTag(GameTag.QUEST_PROGRESS_TOTAL)
+			};
+		}
+
 		private BoardState GetBoardState()
 		{
 			if(Core.Game.PlayerEntity == null || Core.Game.OpponentEntity == null)
 				return null;
 
-			int ZonePosition(Entity e) => e.GetTag(GameTag.ZONE_POSITION);
-			int DbfId(Entity e) => e?.Card.DbfIf ?? 0;
-			int[] SortedDbfIds(IEnumerable<Entity> entities) => entities.OrderBy(ZonePosition).Select(DbfId).ToArray();
-			int HeroId(Entity playerEntity) => playerEntity.GetTag(GameTag.HERO_ENTITY);
-			int WeaponId(Entity playerEntity) => playerEntity.GetTag(GameTag.WEAPON);
-			Entity Find(Player p, int entityId) => p.PlayerEntities.FirstOrDefault(x => x.Id == entityId);
-			Entity FindHeroPower(Player p) => p.PlayerEntities.FirstOrDefault(x => x.IsHeroPower && x.IsInPlay);
-			BoardStateQuest Quest(Entity questEntity)
-			{
-				if(questEntity == null)
-					return null;
-				return new BoardStateQuest
-				{
-					DbfId = questEntity.Card.DbfIf,
-					Progress = questEntity.GetTag(GameTag.QUEST_PROGRESS),
-					Total = questEntity.GetTag(GameTag.QUEST_PROGRESS_TOTAL)
-				};
-			}
 
 			var player = Core.Game.Player;
 			var opponent = Core.Game.Opponent;
 
 			var deck = DeckList.Instance.ActiveDeck;
 			var games = deck?.GetRelevantGames();
-			var fullDeckList = DeckList.Instance.ActiveDeckVersion?.Cards.ToDictionary(x => x.DbfIf, x => x.Count);
+			var fullDeckList = new Dictionary<int, int>();
+			if (DeckList.Instance.ActiveDeckVersion != null)
+			{
+				foreach(var card in DeckList.Instance.ActiveDeckVersion.Cards)
+					fullDeckList[card.DbfIf] = card.Count;
+			}
 			int FullCount(int dbfId) => fullDeckList == null ? 0 : fullDeckList.TryGetValue(dbfId, out var count) ? count : 0;
 
 			var playerCardsDict = new List<int[]>();
@@ -113,6 +134,8 @@ namespace Hearthstone_Deck_Tracker.Live
 					playerCardsDict.Add(new []{card.DbfIf, card.Count, inDeck});
 				}
 			}
+			var format = Core.Game.CurrentFormat ?? Format.Wild;
+			var gameType = HearthDbConverter.GetBnetGameType(Core.Game.CurrentGameType, format);
 
 			return new BoardState
 			{
@@ -158,6 +181,7 @@ namespace Hearthstone_Deck_Tracker.Live
 					Quest = Quest(opponent.Quests.FirstOrDefault()),
 					Fatigue = Core.Game.OpponentEntity.GetTag(GameTag.FATIGUE)
 				},
+				GameType = gameType,
 			};
 		}
 	}

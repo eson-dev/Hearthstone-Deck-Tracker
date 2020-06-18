@@ -45,6 +45,8 @@ namespace Hearthstone_Deck_Tracker.Stats
 		private string _playerName;
 		private string _opponentName;
 		private int _rank;
+		private int _starLevel;
+		private int _battlegroundsRating;
 		private int _stars;
 		private int _legendRank;
 		private Region _region;
@@ -172,6 +174,18 @@ namespace Hearthstone_Deck_Tracker.Stats
 			}
 		}
 
+		public int StarLevel
+		{
+			get { return _starLevel; }
+			set
+			{
+				_starLevel = value;
+				OnPropertyChanged();
+				OnPropertyChanged(nameof(RankString));
+			}
+		}
+		public int StarLevelAfter { get; set; }
+
 		public int Stars
 		{
 			get { return _stars; }
@@ -181,6 +195,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 				OnPropertyChanged();
 			}
 		}
+		public int StarsAfter { get; set; }
 
 		public int LegendRank
 		{
@@ -190,6 +205,22 @@ namespace Hearthstone_Deck_Tracker.Stats
 				OnPropertyChanged(nameof(RankString));
 			}
 		}
+
+		public int LegendRankAfter { get; set; }
+
+		public int BattlegroundsRating
+		{
+			get { return _battlegroundsRating; }
+			set
+			{
+				_battlegroundsRating = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public int BattlegroundsRatingAfter { get; set; }
+
+		public HashSet<Race> BattlegroundsRaces { get; set; }
 
 		public int OpponentLegendRank
 		{
@@ -201,7 +232,14 @@ namespace Hearthstone_Deck_Tracker.Stats
 			}
 		}
 
+
 		public int OpponentRank { get; set; }
+
+		public int OpponentStarLevel { get; set; }
+
+		public int LeagueId { get; set; }
+
+		public int StarMultiplier { get; set; }
 
 		public int? HearthstoneBuild { get; set; }
 		
@@ -210,6 +248,8 @@ namespace Hearthstone_Deck_Tracker.Stats
 		public int OpponentCardbackId { get; set; }
 
 		public int FriendlyPlayerId { get; set; }
+
+		public int OpponentPlayerId { get; set; }
 
 		public int ScenarioId { get; set; }
 
@@ -324,10 +364,10 @@ namespace Hearthstone_Deck_Tracker.Stats
 		public bool HasLegendRank => LegendRank > 0;
 
 		[XmlIgnore]
-		public string RankString => GameMode == GameMode.Ranked ? (HasLegendRank ? $"L{LegendRank}" : (HasRank ? Rank.ToString() : "-")) : "-";
+		public string RankString => GameMode == GameMode.Ranked ? RankTranslator.GetRankString(LeagueId, StarLevel, Rank, LegendRank) : "-";
 
 		[XmlIgnore]
-		public int SortableRank => GameMode == GameMode.Ranked ? (HasLegendRank ? -int.MaxValue + LegendRank : (HasRank ? Rank : int.MaxValue)) : int.MaxValue;
+		public int SortableRank => GameMode == GameMode.Ranked ? (HasLegendRank ? -int.MaxValue + LegendRank : (HasRank ? Rank : (StarLevel > 0 ? -StarLevel : int.MaxValue))) : int.MaxValue;
 
 		[XmlIgnore]
 		public string ResultString => Result + (WasConceded ? "*" : "");
@@ -496,7 +536,9 @@ namespace Hearthstone_Deck_Tracker.Stats
 		public bool ShouldSerializeOpponentCards() => OpponentCards.Any();
 		public bool ShouldSerializeRank() => Rank > 0;
 		public bool ShouldSerializeStars() => Stars > 0;
+		public bool ShouldSerializeStarsAfter() => StarsAfter > 0;
 		public bool ShouldSerializeLegendRank() => LegendRank > 0;
+		public bool ShouldSerializeLegendRankAfter() => LegendRankAfter > 0;
 		public bool ShouldSerializeOpponentRank() => OpponentRank > 0;
 		public bool ShouldSerializeOpponentLegendRank() => OpponentLegendRank > 0;
 		public bool ShouldSerializeRegion() => Region != Region.UNKNOWN;
@@ -504,6 +546,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 		public bool ShouldSerializePlayerCardbackId() => PlayerCardbackId > 0;
 		public bool ShouldSerializeOpponentCardbackId() => OpponentCardbackId > 0;
 		public bool ShouldSerializeFriendlyPlayerId() => FriendlyPlayerId > 0;
+		public bool ShouldSerializeOpponentPlayerId() => OpponentPlayerId > 0;
 		public bool ShouldSerializeScenarioId() => ScenarioId > 0;
 		public bool ShouldSerializeServerInfo() => ServerInfo != null;
 		public bool ShouldSerializeHsReplay() => HsReplay.UploadTries > 0 || HsReplay.Uploaded;
@@ -515,6 +558,14 @@ namespace Hearthstone_Deck_Tracker.Stats
 		public bool ShouldSerializeArenaLosses() => ArenaLosses > 0;
 		public bool ShouldSerializeBrawlWins() => BrawlWins > 0;
 		public bool ShouldSerializeBrawlLosses() => BrawlLosses > 0;
+		public bool ShouldSerializeBattlegroundsRating() => BattlegroundsRating > 0;
+		public bool ShouldSerializeBattlegroundsRatingAfter() => BattlegroundsRatingAfter > 0;
+		public bool ShouldSerializeStarLevel() => StarLevel > 0;
+		public bool ShouldSerializeStarLevelAfter() => StarLevelAfter > 0;
+		public bool ShouldSerializeOpponentStarLevel() => OpponentStarLevel > 0;
+		public bool ShouldSerializeLeagueId() => LeagueId > 0;
+		public bool ShouldSerializeStarMultiplier() => StarMultiplier > 0;
+		public bool ShouldSerializeBattlegroundsRaces() => BattlegroundsRaces?.Count > 0;
 
 
 		public event PropertyChangedEventHandler PropertyChanged;

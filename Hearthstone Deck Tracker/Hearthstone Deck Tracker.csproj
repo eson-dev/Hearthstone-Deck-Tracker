@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\squirrel.windows.1.9.1\build\squirrel.windows.props" Condition="Exists('..\packages\squirrel.windows.1.9.1\build\squirrel.windows.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -9,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hearthstone_Deck_Tracker</RootNamespace>
     <AssemblyName>HearthstoneDeckTracker</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -28,6 +29,9 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -101,6 +105,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Accessibility" />
+    <Reference Include="ControlzEx, Version=3.0.2.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\ControlzEx.3.0.2.4\lib\net462\ControlzEx.dll</HintPath>
+    </Reference>
     <Reference Include="De.TorstenMandelkow.MetroChart, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\lib\De.TorstenMandelkow.MetroChart.dll</HintPath>
@@ -114,62 +121,71 @@
     <Reference Include="DeltaCompressionDotNet.PatchApi, Version=1.1.0.0, Culture=neutral, PublicKeyToken=3e8888ee913ed789, processorArchitecture=MSIL">
       <HintPath>..\packages\DeltaCompressionDotNet.1.1.0\lib\net20\DeltaCompressionDotNet.PatchApi.dll</HintPath>
     </Reference>
-    <Reference Include="HtmlAgilityPack">
-      <HintPath>..\packages\HtmlAgilityPack.1.4.6\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    <Reference Include="HearthDb">
+      <HintPath>..\lib\HearthDb.dll</HintPath>
     </Reference>
-    <Reference Include="LiveCharts, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
-      <HintPath>..\packages\LiveCharts.0.9.6\lib\net45\LiveCharts.dll</HintPath>
+    <Reference Include="HearthMirror">
+      <HintPath>..\lib\HearthMirror.dll</HintPath>
     </Reference>
-    <Reference Include="LiveCharts.Wpf, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
-      <HintPath>..\packages\LiveCharts.Wpf.0.9.6\lib\net45\LiveCharts.Wpf.dll</HintPath>
+    <Reference Include="HSReplay">
+      <HintPath>..\lib\HSReplay.dll</HintPath>
     </Reference>
-    <Reference Include="MahApps.Metro, Version=1.5.0.23, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.1.5.0\lib\net45\MahApps.Metro.dll</HintPath>
+    <Reference Include="BobsBuddy">
+      <HintPath>..\lib\BobsBuddy.dll</HintPath>
+    </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.11.23.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.11.23\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveCharts, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
+      <HintPath>..\packages\LiveCharts.0.9.7\lib\net45\LiveCharts.dll</HintPath>
+    </Reference>
+    <Reference Include="LiveCharts.Wpf, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
+      <HintPath>..\packages\LiveCharts.Wpf.0.9.7\lib\net45\LiveCharts.Wpf.dll</HintPath>
+    </Reference>
+    <Reference Include="MahApps.Metro, Version=1.6.5.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MahApps.Metro.1.6.5\lib\net47\MahApps.Metro.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.Mdb.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Pdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.Pdb.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.1\lib\net45\Mono.Cecil.Rocks.dll</HintPath>
-      <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Squirrel, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\squirrel.windows.1.7.8\lib\Net45\NuGet.Squirrel.dll</HintPath>
+      <HintPath>..\packages\squirrel.windows.1.9.1\lib\Net45\NuGet.Squirrel.dll</HintPath>
     </Reference>
     <Reference Include="PresentationUI, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="ReachFramework" />
     <Reference Include="SharpCompress, Version=0.17.1.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpCompress.0.17.1\lib\net45\SharpCompress.dll</HintPath>
     </Reference>
-    <Reference Include="SharpRaven, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpRaven.2.1.0\lib\net45\SharpRaven.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="SharpRaven, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpRaven.2.4.0\lib\net471\SharpRaven.dll</HintPath>
     </Reference>
     <Reference Include="Splat, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Splat.1.6.2\lib\Net45\Splat.dll</HintPath>
-      <Private>True</Private>
     </Reference>
-    <Reference Include="Squirrel, Version=1.7.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\squirrel.windows.1.7.8\lib\Net45\Squirrel.dll</HintPath>
+    <Reference Include="Squirrel, Version=1.9.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\squirrel.windows.1.9.1\lib\Net45\Squirrel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Printing" />
     <Reference Include="System.Runtime.Serialization" />
@@ -177,8 +193,7 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.1.5.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\ControlzEx.3.0.2.4\lib\net462\System.Windows.Interactivity.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
@@ -193,13 +208,11 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="WPFLocalizeExtension">
-      <HintPath>..\packages\WpfLocalizeExtension.2.3.2\lib\net35\WPFLocalizeExtension.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="WPFLocalizeExtension, Version=3.5.0.0, Culture=neutral, PublicKeyToken=c726e0262981a1eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\WPFLocalizeExtension.3.5.0\lib\net452\WPFLocalizeExtension.dll</HintPath>
     </Reference>
-    <Reference Include="XAMLMarkupExtensions">
-      <HintPath>..\packages\XAMLMarkupExtensions.1.2.1.3\lib\net40\XAMLMarkupExtensions.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="XAMLMarkupExtensions, Version=1.8.0.0, Culture=neutral, PublicKeyToken=c726e0262981a1eb, processorArchitecture=MSIL">
+      <HintPath>..\packages\XAMLMarkupExtensions.1.8.0\lib\net452\XAMLMarkupExtensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -214,6 +227,11 @@
     <Compile Include="API\GameEvents.cs" />
     <Compile Include="API\LogEvents.cs" />
     <Compile Include="API\PredamageInfo.cs" />
+    <Compile Include="BobsBuddy\BobsBuddyInvoker.cs" />
+    <Compile Include="BobsBuddy\BobsBuddyUtils.cs" />
+    <Compile Include="BobsBuddy\CombatResult.cs" />
+    <Compile Include="BobsBuddy\LethalResult.cs" />
+    <Compile Include="BobsBuddy\MinionHeroPowerTrigger.cs" />
     <Compile Include="Controls\AnimatedCard.xaml.cs">
       <DependentUpon>AnimatedCard.xaml</DependentUpon>
     </Compile>
@@ -225,6 +243,9 @@
     </Compile>
     <Compile Include="Controls\CardMarker.xaml.cs">
       <DependentUpon>CardMarker.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\EntityControl.xaml.cs">
+      <DependentUpon>EntityControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\CardToolTipControl.xaml.cs">
       <DependentUpon>CardToolTipControl.xaml</DependentUpon>
@@ -244,6 +265,27 @@
     <Compile Include="Controls\OAuthLogin.xaml.cs">
       <DependentUpon>OAuthLogin.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\Overlay\BattlegroundsCardsGroup.xaml.cs">
+      <DependentUpon>BattlegroundsCardsGroup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Overlay\BattlegroundsHeroPanel.xaml.cs">
+      <DependentUpon>BattlegroundsHeroPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Overlay\BattlegroundsMinions.xaml.cs">
+      <DependentUpon>BattlegroundsMinions.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Overlay\BattlegroundsTier.xaml.cs">
+      <DependentUpon>BattlegroundsTier.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="BobsBuddy\BobsBuddyErrorState.cs" />
+    <Compile Include="Controls\Overlay\BobsBuddyPanel.xaml.cs">
+      <DependentUpon>BobsBuddyPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="BobsBuddy\BobsBuddyState.cs" />
+    <Compile Include="BobsBuddy\StatusMessageConverter.cs" />
+    <Compile Include="Controls\Overlay\TurnCounter.xaml.cs">
+      <DependentUpon>TurnCounter.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\RemovableBanner.xaml.cs">
       <DependentUpon>RemovableBanner.xaml</DependentUpon>
     </Compile>
@@ -255,6 +297,7 @@
     </Compile>
     <Compile Include="Enums\DeckDateType.cs" />
     <Compile Include="Enums\HsActionType.cs" />
+    <Compile Include="Enums\League.cs" />
     <Compile Include="FlyoutControls\Options\HSReplay\HSReplayAccount.xaml.cs">
       <DependentUpon>HSReplayAccount.xaml</DependentUpon>
     </Compile>
@@ -264,15 +307,22 @@
     <Compile Include="FlyoutControls\Options\HSReplay\HSReplayReplays.xaml.cs">
       <DependentUpon>HSReplayReplays.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FlyoutControls\Options\Overlay\OverlayBattlegrounds.xaml.cs">
+      <DependentUpon>OverlayBattlegrounds.xaml</DependentUpon>
+    </Compile>
     <Compile Include="FlyoutControls\Options\Streaming\StreamingCapturableOverlay.xaml.cs">
       <DependentUpon>StreamingCapturableOverlay.xaml</DependentUpon>
     </Compile>
     <Compile Include="FlyoutControls\Options\Streaming\StreamingTwitchExtension.xaml.cs">
       <DependentUpon>StreamingTwitchExtension.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Hearthstone\BattlegroundsDb.cs" />
+    <Compile Include="Hearthstone\BattlegroundsUtils.cs" />
+    <Compile Include="Hearthstone\BoardSnapshot.cs" />
     <Compile Include="Hearthstone\Collection.cs" />
     <Compile Include="Hearthstone\DungeonRun.cs" />
     <Compile Include="Hearthstone\Entities\GuessedCardState.cs" />
+    <Compile Include="Hearthstone\RankTranslator.cs" />
     <Compile Include="Hearthstone\Secrets\ArenaSettingsProvider.cs" />
     <Compile Include="Hearthstone\Secrets\RemoteArenaSettings.cs" />
     <Compile Include="HsReplay\HSReplayNetOAuth.cs" />
@@ -280,9 +330,14 @@
     <Compile Include="HsReplay\HSReplayNetHelper.cs" />
     <Compile Include="Utility\ComboBoxHelper.cs" />
     <Compile Include="Utility\DataLoader.cs" />
+    <Compile Include="Utility\DelayedMouseOver.cs" />
     <Compile Include="Utility\GlobalCommands.cs" />
     <Compile Include="Utility\HearthstoneRunner.cs" />
+    <Compile Include="Utility\IgnoreSizeDecorator.cs" />
     <Compile Include="Utility\Kernel32.cs" />
+    <Compile Include="Utility\Overlay\AnimationType.cs" />
+    <Compile Include="Utility\Overlay\OverlayAnimationUtils.cs" />
+    <Compile Include="Utility\Overlay\Side.cs" />
     <Compile Include="Utility\RateLimiter.cs" />
     <Compile Include="HsReplay\UploadTokenHistory.cs" />
     <Compile Include="Live\Data\PayloadFactory.cs" />
@@ -320,10 +375,11 @@
     <Compile Include="Live\Data\DataType.cs" />
     <Compile Include="Live\Data\Payload.cs" />
     <Compile Include="Utility\RemoteConfig.cs" />
+    <Compile Include="Utility\Shell32.cs" />
     <Compile Include="Utility\Singleton.cs" />
     <Compile Include="Utility\ScheduledTaskRunner.cs" />
-    <Compile Include="Utility\Toasts\ToastControls\BaseToast.xaml.cs">
-      <DependentUpon>BaseToast.xaml</DependentUpon>
+    <Compile Include="Utility\Toasts\ToastControls\BattlegroundsToast.xaml.cs">
+      <DependentUpon>BattlegroundsToast.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utility\Toasts\ToastControls\CollectionUploadedToast.xaml.cs">
       <DependentUpon>CollectionUploadedToast.xaml</DependentUpon>
@@ -751,6 +807,7 @@
       <DependentUpon>NewsBarView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\MainWindowControls\NewsBarViewModel.cs" />
+    <Compile Include="Utility\Overlay\OverlayElementBehavior.cs" />
     <Compile Include="Windows\SelectLanguageDialog.xaml.cs">
       <DependentUpon>SelectLanguageDialog.xaml</DependentUpon>
     </Compile>
@@ -902,6 +959,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\EntityControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\CardToolTipControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -943,6 +1004,30 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\OAuthLogin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Overlay\BattlegroundsCardsGroup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Overlay\BattlegroundsHeroPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Overlay\BattlegroundsMinions.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Overlay\BattlegroundsTier.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\Overlay\BobsBuddyPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Overlay\TurnCounter.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1134,6 +1219,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="FlyoutControls\Options\Overlay\OverlayBattlegrounds.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="FlyoutControls\Options\Streaming\StreamingCapturableOverlay.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -1206,9 +1295,9 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Utility\Toasts\ToastControls\BaseToast.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="Utility\Toasts\ToastControls\BattlegroundsToast.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Utility\Toasts\ToastControls\CollectionUploadedToast.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -1395,6 +1484,8 @@
     </Compile>
     <Compile Include="Utility\Updating\Updater.Squirrel.cs" />
     <Compile Include="Utility\Updating\Updater.Default.cs" />
+    <Resource Include="Resources\ClassIcons\Square\demonhunter.png" />
+    <Resource Include="Resources\ClassIcons\Round\demonhunter.png" />
     <Resource Include="Images\icon-pogo.png" />
     <Resource Include="Resources\hearthstone-icon.png" />
     <Resource Include="Resources\collection_promo.jpg" />
@@ -1478,17 +1569,7 @@
     <Resource Include="Resources\mana.png" />
     <Resource Include="Resources\health.png" />
     <Resource Include="Resources\damage.png" />
-    <Resource Include="Resources\druid_small.png" />
-    <Resource Include="Resources\hunter_small.png" />
-    <Resource Include="Resources\mage_small.png" />
-    <Resource Include="Resources\paladin_small.png" />
-    <Resource Include="Resources\priest_small.png" />
-    <Resource Include="Resources\rogue_small.png" />
-    <Resource Include="Resources\shaman_small.png" />
-    <Resource Include="Resources\warlock_small.png" />
-    <Resource Include="Resources\warrior_small.png" />
     <Resource Include="Resources\armor.png" />
-    <Resource Include="Resources\jaraxxus_small.png" />
     <Resource Include="Resources\ClassIcons\Square\druid.png" />
     <Resource Include="Resources\ClassIcons\Square\hunter.png" />
     <Resource Include="Resources\ClassIcons\Square\mage.png" />
@@ -1499,7 +1580,6 @@
     <Resource Include="Resources\ClassIcons\Square\warlock.png" />
     <Resource Include="Resources\ClassIcons\Square\warrior.png" />
     <Resource Include="Resources\archived_marker.png" />
-    <Resource Include="Resources\ClassIcons\Round\deathknight.png" />
     <Resource Include="Resources\ClassIcons\Round\druid.png" />
     <Resource Include="Resources\ClassIcons\Round\hunter.png" />
     <Resource Include="Resources\ClassIcons\Round\mage.png" />
@@ -1544,8 +1624,18 @@
     <Resource Include="Images\icon-cthun.png" />
     <Resource Include="Images\icon-jade.png" />
     <Resource Include="Images\icon-spells.png" />
+    <Resource Include="Images\icon-galakrond.png" />
     <Resource Include="Resources\embroidery.png" />
     <Resource Include="Resources\tactile_noise.png" />
+    <Resource Include="Resources\tier-1.png" />
+    <Resource Include="Resources\tier-2.png" />
+    <Resource Include="Resources\tier-3.png" />
+    <Resource Include="Resources\tier-4.png" />
+    <Resource Include="Resources\tier-5.png" />
+    <Resource Include="Resources\tier-6.png" />
+    <Resource Include="Resources\tier-glow.png" />
+    <Resource Include="Resources\tier-x.png" />
+    <Resource Include="Resources\bgs-toast-background.jpg" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -1581,21 +1671,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\HearthDb\HearthDb\HearthDb.csproj">
-      <Project>{7ed14243-e02b-4b94-af00-a67a62c282f0}</Project>
-      <Name>HearthDb</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HearthMirror\HearthMirror\HearthMirror.csproj">
-      <Project>{1694a2f8-645a-4263-a6ab-fc26323fd675}</Project>
-      <Name>HearthMirror</Name>
-    </ProjectReference>
     <ProjectReference Include="..\HearthWatcher\HearthWatcher.csproj">
       <Project>{02e1843d-3f5d-45e0-9b16-1f28209eed82}</Project>
       <Name>HearthWatcher</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\HSReplay-Api\HSReplay\HSReplay.csproj">
-      <Project>{a6264074-8a96-417c-9673-5ee7e9820b1f}</Project>
-      <Name>HSReplay</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -1621,4 +1699,12 @@
   <Target Name="BeforeBuild">
     <CallTarget Targets="GenerateDesignerFiles" />
   </Target>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\squirrel.windows.1.9.1\build\squirrel.windows.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\squirrel.windows.1.9.1\build\squirrel.windows.props'))" />
+    <Error Condition="!Exists('..\packages\squirrel.windows.1.9.1\build\squirrel.windows.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\squirrel.windows.1.9.1\build\squirrel.windows.targets'))" />
+  </Target>
+  <Import Project="..\packages\squirrel.windows.1.9.1\build\squirrel.windows.targets" Condition="Exists('..\packages\squirrel.windows.1.9.1\build\squirrel.windows.targets')" />
 </Project>

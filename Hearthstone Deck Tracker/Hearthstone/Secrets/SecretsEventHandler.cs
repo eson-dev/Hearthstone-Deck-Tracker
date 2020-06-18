@@ -54,45 +54,48 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Secrets
 
 			if(defender.IsHero)
 			{
-				if(!fastOnly)
+				if(!fastOnly && attacker.Health >= 1)
 				{
-					if(freeSpaceOnBoard && attacker.Health >= 1)
+					if(freeSpaceOnBoard)
 						exclude.Add(Hunter.BearTrap);
-					exclude.Add(Mage.IceBarrier);
+
+					if(Game.Entities.Values.Any(x =>
+													x.IsInPlay &&
+													(x.IsHero || x.IsMinion) &&
+													!x.HasTag(GameTag.IMMUNE) &&
+													x != attacker &&
+													x != defender))
+						exclude.Add(Hunter.Misdirection);
+
+					if(attacker.IsMinion)
+					{
+						if(Game.PlayerMinionCount > 1)
+							exclude.Add(Rogue.SuddenBetrayal);
+
+						exclude.Add(Mage.FlameWard);
+						exclude.Add(Hunter.FreezingTrap);
+						exclude.Add(Mage.Vaporize);
+					}
 				}
 
 				if(freeSpaceOnBoard)
 					exclude.Add(Hunter.WanderingMonster);
 
+				exclude.Add(Mage.IceBarrier);
 				exclude.Add(Hunter.ExplosiveTrap);
-
-				if(Game.IsMinionInPlay)
-					exclude.Add(Hunter.Misdirection);
-
-				if(attacker.IsMinion && Game.PlayerMinionCount > 1)
-					exclude.Add(Rogue.SuddenBetrayal);
-
-				if(attacker.IsMinion)
-				{
-					exclude.Add(Mage.Vaporize);
-					exclude.Add(Mage.FlameWard);
-					if(attacker.Health >= 1)
-						exclude.Add(Hunter.FreezingTrap);
-				}
 			}
 			else
 			{
+				exclude.Add(Rogue.Bamboozle);
 				if (!defender.HasTag(GameTag.DIVINE_SHIELD))
 					exclude.Add(Paladin.AutodefenseMatrix);
 
 				if(freeSpaceOnBoard)
 				{
 					exclude.Add(Mage.SplittingImage);
-					if(!fastOnly)
-					{
-						exclude.Add(Hunter.SnakeTrap);
-						exclude.Add(Hunter.VenomstrikeTrap);
-					}
+					exclude.Add(Hunter.PackTactics);
+					exclude.Add(Hunter.SnakeTrap);
+					exclude.Add(Hunter.VenomstrikeTrap);
 				}
 
 				if(attacker.IsMinion)
@@ -131,19 +134,24 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Secrets
 
 			var exclude = new List<string>();
 
-			SaveSecret(Hunter.Snipe);
-			exclude.Add(Hunter.Snipe);
-			SaveSecret(Mage.ExplosiveRunes);
-			exclude.Add(Mage.ExplosiveRunes);
-			SaveSecret(Mage.PotionOfPolymorph);
-			exclude.Add(Mage.PotionOfPolymorph);
-			SaveSecret(Paladin.Repentance);
-			exclude.Add(Paladin.Repentance);
+			if(!entity.HasTag(GameTag.DORMANT))
+			{
+				SaveSecret(Hunter.Snipe);
+				exclude.Add(Hunter.Snipe);
+				SaveSecret(Mage.ExplosiveRunes);
+				exclude.Add(Mage.ExplosiveRunes);
+				SaveSecret(Mage.PotionOfPolymorph);
+				exclude.Add(Mage.PotionOfPolymorph);
+				SaveSecret(Paladin.Repentance);
+				exclude.Add(Paladin.Repentance);
+			}
 
 			if(FreeSpaceOnBoard)
 			{
 				SaveSecret(Mage.MirrorEntity);
 				exclude.Add(Mage.MirrorEntity);
+				SaveSecret(Rogue.Ambush);
+				exclude.Add(Rogue.Ambush);
 			}
 
 			if(FreeSpaceInHand)
@@ -293,7 +301,10 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Secrets
 					exclude.Add(Paladin.NeverSurrender);
 
 				if(Game.OpponentHandCount < 10)
+				{
+					exclude.Add(Rogue.DirtyTricks);
 					exclude.Add(Mage.ManaBind);
+				}
 
 				if(Game.OpponentMinionCount < 7)
 				{
@@ -303,6 +314,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Secrets
 						&& Game.Entities.TryGetValue(entity.GetTag(GameTag.CARD_TARGET), out Entity target) && target.IsMinion)
 						exclude.Add(Mage.Spellbender);
 					exclude.Add(Hunter.CatTrick);
+					exclude.Add(Mage.NetherwindPortal);
 				}
 
 				if (Game.PlayerMinionCount > 0)

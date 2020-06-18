@@ -206,6 +206,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(GameMode.All)]
 		public GameMode ConstructedStatsModeFilter = GameMode.All;
 
+		[DefaultValue(League.All)]
+		public League ConstructedStatsLeagueFilter = League.All;
+
 		[DefaultValue(DisplayedTimeFrame.CurrentSeason)]
 		public DisplayedTimeFrame ConstructedStatsTimeFrameFilter = DisplayedTimeFrame.CurrentSeason;
 
@@ -413,6 +416,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(DisplayMode.Auto)]
 		public DisplayMode OpponentPogoHopperCounter = DisplayMode.Auto;
 
+		[DefaultValue(DisplayMode.Auto)]
+		public DisplayMode OpponentGalakrondCounter = DisplayMode.Auto;
+
 		[DefaultValue(false)]
 		public bool HideOpponentCardAge = false;
 
@@ -454,6 +460,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(DisplayMode.Auto)]
 		public DisplayMode PlayerPogoHopperCounter = DisplayMode.Auto;
+
+		[DefaultValue(DisplayMode.Auto)]
+		public DisplayMode PlayerGalakrondCounter = DisplayMode.Auto;
 
 		[DefaultValue(false)]
 		public bool HidePlayerCards = false;
@@ -499,6 +508,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(true)]
 		public bool HsReplayUploadSpectator = true;
+
+		[DefaultValue(true)]
+		public bool HsReplayUploadBattlegrounds = true;
 
 		[DefaultValue(null)]
 		public bool? HsReplayUploadPacks = null;
@@ -771,6 +783,24 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(false)]
 		public bool ShowBatteryLifePercent = false;
 
+		[DefaultValue(true)]
+		public bool ShowBattlegroundsTiers = true;
+
+		[DefaultValue(true)]
+		public bool ShowBattlegroundsTurnCounter = true;
+
+		[DefaultValue(true)]
+		public bool RunBobsBuddy = true;
+
+		[DefaultValue(true)]
+		public bool ShowBobsBuddyDuringCombat = true;
+
+		[DefaultValue(false)]
+		public bool ShowBobsBuddyDuringShopping = false;
+
+		[DefaultValue(false)]
+		public bool SeenBobsBuddyInfo = false;
+
 		[DefaultValue(false)]
 		public bool ShowCapturableOverlay = false;
 
@@ -815,6 +845,12 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(true)]
 		public bool ShowReplayShareToast = true;
+
+		[DefaultValue(true)]
+		public bool ShowBattlegroundsToast = true;
+
+		[DefaultValue(true)]
+		public bool ShowLeagueFilterHint = true;
 
 		[DefaultValue(true)]
 		public bool SortDecksByClass = true;

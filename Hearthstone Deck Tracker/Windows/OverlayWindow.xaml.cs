@@ -5,18 +5,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Hearthstone_Deck_Tracker.Annotations;
 using Hearthstone_Deck_Tracker.Controls;
-using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 using static System.Windows.Visibility;
 using Card = Hearthstone_Deck_Tracker.Hearthstone.Card;
+using HearthDb.Enums;
+using Hearthstone_Deck_Tracker.Utility;
 
 #endregion
 
@@ -37,11 +37,13 @@ namespace Hearthstone_Deck_Tracker.Windows
 		private readonly List<UIElement> _debugBoardObjects = new List<UIElement>();
 		private readonly GameV2 _game;
 		private readonly Dictionary<UIElement, ResizeGrip> _movableElements = new Dictionary<UIElement, ResizeGrip>();
+		private readonly List<FrameworkElement> _clickableElements = new List<FrameworkElement>();
 		private readonly int _offsetX;
 		private readonly int _offsetY;
 		private readonly List<Ellipse> _oppBoard = new List<Ellipse>();
 		private readonly List<Ellipse> _playerBoard = new List<Ellipse>();
 		private readonly List<Rectangle> _playerHand = new List<Rectangle>();
+		private readonly List<Rectangle> _leaderboardIcons = new List<Rectangle>();
 		private bool? _isFriendsListOpen;
 		private string _lastToolTipCardId;
 		private bool _lmbDown;
@@ -54,10 +56,47 @@ namespace Hearthstone_Deck_Tracker.Windows
 		private UIElement _selectedUiElement;
 		private bool _uiMovable;
 
+		private OverlayElementBehavior _heroNotificationBehavior;
+		private OverlayElementBehavior _bgsTopBarBehavior;
+		private OverlayElementBehavior _bgsBobsBuddyBehavior;
+
 		public OverlayWindow(GameV2 game)
 		{
 			_game = game;
 			InitializeComponent();
+
+			_heroNotificationBehavior = new OverlayElementBehavior(HeroNotificationPanel)
+			{
+				GetRight = () => 0,
+				GetBottom = () => Height * 0.04,
+				GetScaling = () => AutoScaling,
+				AnchorSide = Side.Bottom,
+				HideCallback = () => {
+					ShowBgsTopBar();
+				},
+				EntranceAnimation = AnimationType.Slide,
+				ExitAnimation = AnimationType.Slide,
+			};
+
+			_bgsTopBarBehavior = new OverlayElementBehavior(BgsTopBar)
+			{
+				GetRight = () => 0,
+				GetTop = () => 0,
+				GetScaling = () => AutoScaling,
+				AnchorSide = Side.Top,
+				EntranceAnimation = AnimationType.Slide,
+				ExitAnimation = AnimationType.Slide,
+			};
+
+			_bgsBobsBuddyBehavior = new OverlayElementBehavior(BobsBuddyDisplay)
+			{
+				GetLeft = () => Width / 2 - BobsBuddyDisplay.ActualWidth * AutoScaling / 2,
+				GetTop = () => 0,
+				GetScaling = () => AutoScaling,
+				AnchorSide = Side.Top,
+				EntranceAnimation = AnimationType.Slide,
+				ExitAnimation = AnimationType.Slide,
+			};
 
 			if(Config.Instance.ExtraFeatures && Config.Instance.ForceMouseHook)
 				HookMouse();
@@ -105,6 +144,9 @@ namespace Hearthstone_Deck_Tracker.Windows
 		public VerticalAlignment OpponentStackPanelAlignment
 			=> Config.Instance.OverlayCenterOpponentStackPanel ? VerticalAlignment.Center : VerticalAlignment.Top;
 
+		public double BattlegroundsTileHeight => Height * 0.69 / 8;
+		public double BattlegroundsTileWidth => BattlegroundsTileHeight;
+
 		public void ShowOverlay(bool enable)
 		{
 			if(enable)
@@ -146,20 +188,33 @@ namespace Hearthstone_Deck_Tracker.Windows
 		private void Window_SourceInitialized_1(object sender, EventArgs e)
 		{
 			var hwnd = new WindowInteropHelper(this).Handle;
-			User32.SetWindowExStyle(hwnd, User32.WsExTransparent | User32.WsExToolWindow);
+			User32.SetWindowExStyle(hwnd, User32.WsExToolWindow | User32.WsExNoActivate | User32.WsExTransparent);
 		}
 
+		private bool _clickthrough = false;
+		private bool SetClickthrough(bool clickthrough)
+		{
+			if(_clickthrough == clickthrough)
+				return false;
+			_clickthrough = clickthrough;
+			var hwnd = new WindowInteropHelper(this).Handle;
+			if(clickthrough)
+				User32.SetWindowExStyle(hwnd, User32.WsExTransparent);
+			else
+				User32.RemoveWindowExStyle(hwnd, User32.WsExTransparent);
+			return true;
+		}
 
 		public void HideTimers() => LblPlayerTurnTime.Visibility = LblOpponentTurnTime.Visibility = LblTurnTime.Visibility = Hidden;
 
 		public void ShowTimers()
 			=>
-				LblPlayerTurnTime.Visibility =
-				LblOpponentTurnTime.Visibility = LblTurnTime.Visibility = Config.Instance.HideTimers ? Hidden : Visible;
+				LblPlayerTurnTime.Visibility = LblOpponentTurnTime.Visibility = LblTurnTime.Visibility
+				= (Config.Instance.HideTimers || _game.IsBattlegroundsMatch) ? Hidden : Visible;
 
 		public void ShowSecrets(List<Card> secrets, bool force = false)
 		{
-			if(Config.Instance.HideSecrets && !force)
+			if((Config.Instance.HideSecrets || _game.IsBattlegroundsMatch) && !force)
 				return;
 
 			StackPanelSecrets.Children.Clear();
@@ -203,5 +258,48 @@ namespace Hearthstone_Deck_Tracker.Windows
 		public void ShowRestartRequiredWarning() => TextBlockRestartWarning.Visibility = Visible;
 
 		public void HideRestartRequiredWarning() => TextBlockRestartWarning.Visibility = Collapsed;
+
+		internal void ShowBattlegroundsHeroPanel(int[] heroIds)
+		{
+			HeroNotificationPanel.HeroIds = heroIds;
+			_heroNotificationBehavior.Show();
+		}
+
+		internal void HideBattlegroundsHeroPanel()
+		{
+			_heroNotificationBehavior.Hide();
+		}
+
+		internal void ShowBgsTopBar()
+		{
+			TurnCounter.Visibility = Config.Instance.ShowBattlegroundsTurnCounter ? Visible : Collapsed;
+			BattlegroundsMinionsPanel.Visibility = Config.Instance.ShowBattlegroundsTiers ? Visible : Collapsed;
+
+			_bgsTopBarBehavior.Show();
+			ShowBobsBuddyPanel();
+		}
+
+		internal void HideBgsTopBar()
+		{
+			BattlegroundsMinionsPanel.Reset();
+			_bgsTopBarBehavior.Hide();
+			TurnCounter.UpdateTurn(1);
+			HideBobsBuddyPanel();
+		}
+
+		internal void ShowBobsBuddyPanel()
+		{
+			if(!Config.Instance.RunBobsBuddy)
+				return;
+			if(RemoteConfig.Instance.Data?.BobsBuddy?.Disabled ?? false)
+				return;
+			_bgsBobsBuddyBehavior.Show();
+		}
+
+		internal void HideBobsBuddyPanel()
+		{
+			_bgsBobsBuddyBehavior.Hide();
+			BobsBuddyDisplay.ResetDisplays();
+		}
 	}
 }

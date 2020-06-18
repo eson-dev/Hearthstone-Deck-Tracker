@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using HearthDb.Enums;
@@ -67,27 +66,36 @@ namespace Hearthstone_Deck_Tracker.Windows
 			var relativePlayerDeckPos = ViewBoxPlayer.PointFromScreen(new Point(pos.X, pos.Y));
 			var relativeOpponentDeckPos = ViewBoxOpponent.PointFromScreen(new Point(pos.X, pos.Y));
 			var relativeSecretsPos = StackPanelSecrets.PointFromScreen(new Point(pos.X, pos.Y));
-			var relativeCardMark = _cardMarks.Select(x => new {Label = x, Pos = x.PointFromScreen(new Point(pos.X, pos.Y))});
+			var relativeCardMark = _cardMarks.Select(x => new { Label = x, Pos = x.PointFromScreen(new Point(pos.X, pos.Y)) });
 			var visibility = (Config.Instance.OverlayCardToolTips && !Config.Instance.OverlaySecretToolTipsOnly)
 								 ? Visible : Hidden;
 			ToolTipCard.CardSetToolTip.Visibility = Config.Instance.OverlaySetToolTips ? Visible : Collapsed;
+			ToolTipCard.CreatedByVisibility = Collapsed;
 
 			var cardMark =
 				relativeCardMark.FirstOrDefault(
-											    x =>
+												x =>
 												x.Label.IsVisible && PointInsideControl(x.Pos, x.Label.ActualWidth, x.Label.ActualHeight, new Thickness(3, 1, 7, 1)));
 			if(!Config.Instance.HideOpponentCardMarks && cardMark != null)
 			{
 				var index = _cardMarks.IndexOf(cardMark.Label);
 				var card = _game.Opponent.Hand.FirstOrDefault(x => x.GetTag(GameTag.ZONE_POSITION) == index + 1 && x.HasCardId && !x.Info.Hidden)?.Card;
-				if(card != null)
+				var creatorCard = _cardMarks[index].SourceCard;
+				if(card != null || creatorCard != null)
 				{
-					ToolTipCard.SetValue(DataContextProperty, card);
-					var topOffset = Canvas.GetTop(_cardMarks[index]) + _cardMarks[index].ActualHeight;
-					var leftOffset = Canvas.GetLeft(_cardMarks[index]) + _cardMarks[index].ActualWidth * index;
+					ToolTipCard.SetValue(DataContextProperty, card ?? creatorCard);
+					var offset = _cardMarks[index].ActualHeight * 1.25;
+					var topOffset = Canvas.GetTop(_cardMarks[index]) + offset;
+					var leftOffset = Canvas.GetLeft(_cardMarks[index]) + offset;
 					Canvas.SetTop(ToolTipCard, topOffset);
 					Canvas.SetLeft(ToolTipCard, leftOffset);
 					ToolTipCard.Visibility = Config.Instance.OverlayCardMarkToolTips ? Visible : Hidden;
+					ToolTipCard.CreatedByVisibility = card != null ? Collapsed : Visible;
+				}
+				else
+				{
+					ToolTipCard.Visibility = Hidden;
+					ToolTipCard.CreatedByVisibility = Collapsed;
 				}
 			}
 			//player card tooltips
@@ -161,6 +169,49 @@ namespace Hearthstone_Deck_Tracker.Windows
 				SetTooltipPosition(topOffset, StackPanelSecrets);
 
 				ToolTipCard.Visibility = Config.Instance.OverlaySecretToolTipsOnly ? Visible : visibility;
+			}
+			else if(BgsTopBar.Visibility == Visible && BattlegroundsMinionsPanel.Visibility == Visible && BattlegroundsMinionsPanel.ActiveTier > 0)
+			{
+				var found = false;
+				foreach(var group in BattlegroundsMinionsPanel.Groups)
+				{
+					var cardList = group.Cards;
+					if(!group.IsVisible || !cardList.IsVisible)
+						continue;
+					var relativePos = cardList.PointFromScreen(new Point(pos.X, pos.Y));
+					if (PointInsideControl(relativePos, cardList.ActualWidth, cardList.ActualHeight))
+					{
+						var cards = cardList.ItemsControl.Items;
+						var cardSize = cardList.ActualHeight / cards.Count;
+						var cardIndex = (int)(relativePos.Y / cardSize);
+						if(cardIndex < 0 || cardIndex >= cards.Count)
+							return;
+						var card = cards.GetItemAt(cardIndex) as AnimatedCard;
+						if(card == null)
+							return;
+						ToolTipCard.SetValue(DataContextProperty, card.GetValue(DataContextProperty));
+
+						//offset is affected by scaling
+						var cardListPos = cardList.TransformToAncestor(CanvasInfo).Transform(new Point(0, 0));
+						var topOffset = cardListPos.Y + cardIndex * cardSize * AutoScaling;
+
+						//prevent tooltip from going outside of the overlay
+						if(topOffset + ToolTipCard.ActualHeight > Height)
+							topOffset = Height - ToolTipCard.ActualHeight;
+
+						Canvas.SetTop(ToolTipCard, topOffset);
+						Canvas.SetLeft(ToolTipCard, cardListPos.X - ToolTipCard.ActualWidth + 22);
+
+						ToolTipCard.Visibility = visibility;
+						found = true;
+					}
+				}
+
+				if(!found)
+				{
+					ToolTipCard.Visibility = Hidden;
+					HideAdditionalToolTips();
+				}
 			}
 			else
 			{
@@ -312,10 +363,15 @@ namespace Hearthstone_Deck_Tracker.Windows
 		{
 			try
 			{
-				if(!Config.Instance.ShowFlavorText || string.IsNullOrEmpty(entity?.Card?.FormattedFlavorText))
+				if(!Config.Instance.ShowFlavorText || entity == null)
 					return;
-				FlavorText = entity.Card.FormattedFlavorText;
-				FlavorTextCardName = entity.Card.LocalizedName;
+				var card = entity.Info.LatestCardId == entity.CardId
+					? entity.Card
+					: Database.GetCardFromId(entity.Info.LatestCardId);
+				if(string.IsNullOrEmpty(card?.FormattedFlavorText))
+					return;
+				FlavorText = card.FormattedFlavorText;
+				FlavorTextCardName = card.LocalizedName;
 				FlavorTextVisibility = Visible;
 			}
 			catch(Exception e)

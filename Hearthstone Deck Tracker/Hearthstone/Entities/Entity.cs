@@ -28,8 +28,25 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 			Id = id;
 		}
 
+		private Entity(int id, Dictionary<GameTag, int> tags)
+		{
+			Id = id;
+			Tags = tags;
+		}
+
+		public Entity Clone()
+		{
+			var entity = new Entity(Id, new Dictionary<GameTag, int>(Tags))
+			{
+				Name = Name,
+				CardId = CardId,
+			};
+			entity._info = Info?.CloneWithNewEntity(entity) ?? new EntityInfo(entity);
+			return entity;
+		}
+
 		[NonSerialized]
-		private readonly EntityInfo _info;
+		private EntityInfo _info;
 		public EntityInfo Info => _info;
 		public Dictionary<GameTag, int> Tags { get; set; }
 		public string Name { get; set; }
@@ -88,9 +105,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 		public bool IsQuest => HasTag(GameTag.QUEST);
 
 		[JsonIgnore]
+		public bool IsSideQuest => HasTag(GameTag.SIDEQUEST);
+
+		[JsonIgnore]
 		public Card Card => _cachedCard ??
 			(_cachedCard = Database.GetCardFromId(CardId) ??
-				new Card(string.Empty, null, Rarity.FREE, "unknown", "unknown", 0, "unknown", 0, 1, "", "", 0, 0, "unknown", null, 0, "", ""));
+				new Card(string.Empty, null, Rarity.FREE, "unknown", "unknown", 0, "unknown", 0, 1, "", "", 0, 0, "unknown", null, 0, "", "", false));
 
 		[JsonIgnore]
 		public int Attack => GetTag(GameTag.ATK);
@@ -117,6 +137,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 		public bool IsInZone(Zone zone) => HasTag(GameTag.ZONE) && GetTag(GameTag.ZONE) == (int)zone;
 
 		public bool IsControlledBy(int controllerId) => HasTag(GameTag.CONTROLLER) && GetTag(GameTag.CONTROLLER) == controllerId;
+
+		public bool IsAttachedTo(int entityId) => GetTag(GameTag.ATTACHED) == entityId;
 
 		public bool IsClass(CardClass cardClass) => GetTag(GameTag.CLASS) == (int)cardClass;
 
@@ -146,9 +168,32 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 	public class EntityInfo
 	{
 		private readonly Entity _entity;
+		private string _latestCardId;
+
 		public EntityInfo(Entity entity)
 		{
 			_entity = entity;
+		}
+
+		public EntityInfo CloneWithNewEntity(Entity entity)
+		{
+			return new EntityInfo(entity)
+			{
+				Turn = Turn,
+				Discarded = Discarded,
+				Returned = Returned,
+				Mulliganed = Mulliganed,
+				Created = Created,
+				HasOutstandingTagChanges = HasOutstandingTagChanges,
+				OriginalController = OriginalController,
+				Hidden = Hidden,
+				CostReduction = CostReduction,
+				OriginalZone = OriginalZone,
+				OriginalCardId = OriginalCardId,
+				OriginalEntityWasCreated = OriginalEntityWasCreated,
+				GuessedCardState = GuessedCardState,
+				LatestCardId = LatestCardId
+			};
 		}
 
 		public int Turn { get; set; }
@@ -179,6 +224,16 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 			OriginalCardId = Database.GetCardFromDbfId(dbfId).Id;
 		}
 
+		public int GetCreatorId()
+		{
+			if(Hidden)
+				return 0;
+			var creatorId = _entity.GetTag(GameTag.DISPLAYED_CREATOR);
+			if(creatorId == 0)
+				creatorId = _entity.GetTag(GameTag.CREATOR);
+			return creatorId;
+		}
+
 		public bool Discarded { get; set; }
 		public bool Returned { get; set; }
 		public bool Mulliganed { get; set; }
@@ -195,6 +250,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 		public bool CreatedInHand => OriginalZone == Zone.HAND;
 		public bool? OriginalEntityWasCreated { get; internal set; }
 		public GuessedCardState GuessedCardState { get; set; } = GuessedCardState.None;
+
+		public string LatestCardId
+		{
+			get => _latestCardId ?? _entity.CardId;
+			set => _latestCardId = value;
+		}
 
 		public override string ToString()
 		{
@@ -224,6 +285,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 				sb.Append(", OriginalCardId=" + OriginalCardId);
 			if(GuessedCardState != GuessedCardState.None)
 				sb.Append(", guessedCardState=" + GuessedCardState);
+			if(!string.IsNullOrEmpty(LatestCardId))
+				sb.Append(", latestCardId=" + LatestCardId);
 			return sb.ToString();
 		}
 	}

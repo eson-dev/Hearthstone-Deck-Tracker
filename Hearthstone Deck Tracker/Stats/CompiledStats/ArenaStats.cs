@@ -50,6 +50,10 @@ namespace Hearthstone_Deck_Tracker.Stats.CompiledStats
 
 		public int PacksCountUldum => GetFilteredRuns().Sum(x => x.Packs.Count(p => p == ArenaRewardPacks.Uldum));
 
+		public int PacksCountDragons => GetFilteredRuns().Sum(x => x.Packs.Count(p => p == ArenaRewardPacks.Dragons));
+
+		public int PacksCountBlackTemple => GetFilteredRuns().Sum(x => x.Packs.Count(p => p == ArenaRewardPacks.BlackTemple));
+
 		public int PacksCountTotal => GetFilteredRuns().Sum(x => x.PackCount);
 
 		public double PacksCountAveragePerRun => Math.Round(GetFilteredRuns(requireAnyReward: true).Select(x => x.PackCount).DefaultIfEmpty(0).Average(), 2);
@@ -77,6 +81,7 @@ namespace Hearthstone_Deck_Tracker.Stats.CompiledStats
 		public ClassStats ClassStatsMostPicked => !ClassStats.Any() ? null : ClassStats.OrderByDescending(x => x.Runs).First();
 		public ClassStats ClassStatsLeastPicked => !ClassStats.Any() ? null : ClassStats.OrderBy(x => x.Runs).First();
 
+		public ClassStats ClassStatsDemonHunter => GetClassStats("DemonHunter");
 		public ClassStats ClassStatsDruid => GetClassStats("Druid");
 		public ClassStats ClassStatsHunter => GetClassStats("Hunter");
 		public ClassStats ClassStatsMage => GetClassStats("Mage");

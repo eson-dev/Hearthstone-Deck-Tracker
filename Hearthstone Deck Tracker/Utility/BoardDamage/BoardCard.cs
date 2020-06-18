@@ -19,6 +19,7 @@ namespace Hearthstone_Deck_Tracker.Utility.BoardDamage
 		private readonly bool _frozen;
 		private readonly int _health;
 		private readonly int _stdAttack;
+		private readonly bool _dormant;
 
 		public BoardCard(Entity e, bool active = true)
 		{
@@ -31,12 +32,13 @@ namespace Hearthstone_Deck_Tracker.Utility.BoardDamage
 			_armor = e.GetTag(ARMOR);
 			_durability = e.GetTag(DURABILITY);
 			_damageTaken = e.GetTag(DAMAGE);
-			Exhausted = e.GetTag(EXHAUSTED) == 1;
+			Exhausted = e.GetTag(EXHAUSTED) == 1 || e.GetTag(NUM_TURNS_IN_PLAY) == 0;
 			_cantAttack = e.GetTag(CANT_ATTACK) == 1;
 			_frozen = e.GetTag(FROZEN) == 1;
 			Charge = e.GetTag(CHARGE) == 1;
 			Windfury = e.GetTag(WINDFURY) == 1;
 			AttacksThisTurn = e.GetTag(NUM_ATTACKS_THIS_TURN);
+			_dormant = e.GetTag(DORMANT) == 1;
 
 			Name = name;
 			CardId = e.CardId;
@@ -94,7 +96,7 @@ namespace Hearthstone_Deck_Tracker.Utility.BoardDamage
 		{
 			// TODO: if frozen on turn, may be able to attack next turn
 			// don't include weapons if an active turn, count Hero instead
-			if(_cantAttack || _frozen || (isWeapon && active))
+			if(_cantAttack || _frozen || (isWeapon && active) || _dormant)
 				return false;
 			if(!active)
 			{

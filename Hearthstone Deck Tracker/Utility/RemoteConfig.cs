@@ -35,6 +35,12 @@ namespace Hearthstone_Deck_Tracker.Utility
 			[JsonProperty("whizbang_decks")]
 			public List<WhizbangDeck> WhizbangDecks { get; set; }
 
+			[JsonProperty("battlegrounds_tag_overrides")]
+			public List <TagOverride> BattlegroundsTagOverrides { get; set; }
+
+			[JsonProperty("bobs_buddy")]
+			public BobsBuddyData BobsBuddy { get; set; }
+
 			internal class NewsData
 			{
 				[JsonProperty("id")]
@@ -94,6 +100,34 @@ namespace Hearthstone_Deck_Tracker.Utility
 
 				[JsonProperty("count")]
 				public int Count { get; set; }
+			}
+
+
+			internal class TagOverride
+			{
+				[JsonProperty("dbf_id")]
+				public int DbfId { get; set; }
+
+				[JsonProperty("tag")]
+				public GameTag Tag { get; set; }
+
+				[JsonProperty("value")]
+				public int Value { get; set; }
+			}
+
+			internal class BobsBuddyData
+			{
+				[JsonProperty("disabled")]
+				public bool Disabled { get; set; }
+
+				[JsonProperty("min_required_version")]
+				public string MinRequiredVersion { get; set; }
+
+				[JsonProperty("sentry_reporting")]
+				public bool SentryReporting { get; set; }
+
+				[JsonProperty("metric_sampling")]
+				public double MetricSampling { get; set; }
 			}
 		}
 	}

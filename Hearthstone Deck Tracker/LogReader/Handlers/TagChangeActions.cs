@@ -2,8 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using HearthDb.Enums;
+using Hearthstone_Deck_Tracker.BobsBuddy;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
+using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.LogReader.Interfaces;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 using static HearthDb.CardIds;
@@ -45,7 +47,7 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 				case FATIGUE:
 					return () => FatigueChange(gameState, value, game, id);
 				case STEP:
-					return () => StepChange(gameState, game);
+					return () => StepChange(value, prevValue, gameState, game);
 				case TURN:
 					return () => TurnChange(gameState, game);
 				case STATE:
@@ -57,8 +59,60 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 					return () => CreatorChanged(id, value, game);
 				case WHIZBANG_DECK_ID:
 					return () => WhizbangDeckIdChange(id, value, game);
+				case MULLIGAN_STATE:
+					return () => MulliganStateChange(id, value, game, gameState);
+				case COPIED_FROM_ENTITY_ID:
+					return () => OnCardCopy(id, value, game, gameState);
+				case TAG_SCRIPT_DATA_NUM_1:
+					return () => OnTagScriptDataNum1(id, value, game, gameState);
 			}
 			return null;
+		}
+
+		private void OnTagScriptDataNum1(int id, int value, IGame game, IHsGameState gameState)
+		{
+			if(game.CurrentGameMode != GameMode.Battlegrounds)
+				return;
+			if(game.CurrentGameStats == null)
+				return;
+			var block = gameState.CurrentBlock;
+			if(block == null || block.Type != "TRIGGER" || block.CardId != NonCollectible.Neutral.Baconshop8playerenchantTavernBrawl || value != 1)
+				return;
+			if(!game.Entities.TryGetValue(id, out var entity))
+				return;
+			if(!entity.IsHeroPower || entity.IsControlledBy(game.Player.Id))
+				return;
+
+			BobsBuddyInvoker.GetInstance(game.CurrentGameStats.GameId, game.GetTurnNumber())
+				.HeroPowerTriggered(entity.CardId);
+		}
+
+		private void OnCardCopy(int id, int value, IGame game, IHsGameState gameState)
+		{
+			if(!game.Entities.TryGetValue(id, out var entity))
+				return;
+			if(entity.IsControlledBy(game.Opponent.Id))
+				return;
+			if(!game.Entities.TryGetValue(value, out var targetEntity))
+				return;
+
+			if(string.IsNullOrEmpty(targetEntity.CardId))
+			{
+				targetEntity.CardId = entity.CardId;
+				targetEntity.Info.GuessedCardState = GuessedCardState.Guessed;
+
+				gameState.GameHandler.HandleCardCopy();
+			}
+		}
+
+		private void MulliganStateChange(int id, int value, IGame game, IHsGameState gameState)
+		{
+			if(value == 0)
+				return;
+			if(!game.Entities.TryGetValue(id, out var entity))
+				return;
+			if(entity.IsPlayer && (Mulligan)value == Mulligan.DONE)
+				gameState.GameHandler.HandlePlayerMulliganDone();
 		}
 
 		private void WhizbangDeckIdChange(int id, int value, IGame game)
@@ -146,8 +200,10 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 				gameState.OpponentUsedHeroPower = false;
 		}
 
-		private void StepChange(IHsGameState gameState, IGame game)
+		private void StepChange(int value, int prevValue, IHsGameState gameState, IGame game)
 		{
+			if((Step)value == Step.BEGIN_MULLIGAN)
+				gameState.GameHandler.HandleBeginMulligan();
 			if(game.SetupDone || game.Entities.FirstOrDefault().Value?.Name != "GameEntity")
 				return;
 			Log.Info("Game was already in progress.");

@@ -1,3 +1,314 @@
+## **Release v1.12.12 - 2020-06-18**
+**Updated for Hearthstone 17.4.1.51510**
+
+**Fixes**:
+ - Fixed an issue where Zoobot might get duplicated in the minions list in Battlegrounds games without Mechs.
+
+**Bob's Buddy**:
+- Fixed an issue where Bob's Buddy was not working when spectating Battlegrounds games.
+- Fixed more issues related to auras that increase health.
+
+
+## **Release v1.12.11 - 2020-06-15**
+
+**Fixes**:
+- Fixed an issue where Zoobot would not show up in the Minions list in Battlegrounds games without Mechs.
+
+**Bob's Buddy**:
+- Fixed an issue with the interaction between Illidans Hero Power and Arcane Canon.
+- Random summons are now restricted to the tribes available during the game.
+- Fixed an issue where auras that increase health were not correctly removed.
+
+
+## **Release v1.12.10 - 2020-06-13**
+
+**Bob's Buddy**:
+- Fixed an issue with the interaction between Scallywag and Monstrous Macaw.
+- Fixed an issue where Arcane Canon would sometimes not detect its neighbouring minions correctly.
+- Fixed an issue where Khadgar would not correctly work with The Beast's Deathrattle.
+
+
+## **Release v1.12.9 - 2020-06-11**
+
+**Bob's Buddy**:
+- Fixed an issue with the attack timing for Skallywag's Deathrattle and Arcane Canon.
+- Fixed an issue with resolving multiple Deathrattles at once.
+
+
+## **Release v1.12.8 - 2020-06-09**
+**Updated for Hearthstone 17.4.0.49534**
+
+**Changes**:
+- The minion list in Battlegrounds games will now only show races available in the current game.
+
+**Bob's Buddy**:
+- Added initial support for all new minions added in this Hearthstone patch (Pirates).
+- Fixed various minor issues related to Kangor's Apprentice's Deathrattle.
+- Fixed an issue where Siegebreaker's aura wasn't working correctly.
+
+
+## **Release v1.12.7 - 2020-06-03**
+
+**Bob's Buddy**:
+- Fixed an issue where multiple Deathrattles triggering simultaneously would sometimes not resolve correctly (e.g. in Exodia builds).
+- Fixed an issue where Professor Putricide's Hero Power was applied twice in some cases.
+- Fixed an issue where Mal'Ganis' aura was sometimes not applied correctly.
+
+
+## **Release v1.12.6 - 2020-05-25**
+
+**New**:
+- Opponent hand icons now display the card they have been created by.
+
+**Fixes**:
+- Fixed an issue causing high GPU usage during Battlegrounds games.
+
+**Bob's Buddy**:
+- Increased the maximum amount of time simulations are allowed to run for complex boards.
+- Fixed an issue where Reborn minions could trigger effects on themselves.
+
+
+## **Release v1.12.5 - 2020-05-20**
+
+**Fixes**:
+- Fixed an issue where HDT had unnecessarily high CPU/GPU usage in some cases.
+- Fixed an issue where flavor text tooltips were not working correctly for cards held in hand.
+- Fixed an issue where flavor text tooltips were not working correctly with transformed minions.
+- Fixed an issue where card tooltips in the Twitch Extension were not working correctly with transformed minions.
+- Fixed several issues where the secret helper would not correctly handle minions that died during an attack.
+
+**Bob's Buddy**:
+- Fixed an issue where Start of Combat triggers for Kel'Thuzad were not handled correctly (this was recently fixed in Hearthstone).
+- Fixed an issue where opposing Lich King / Putricide were considered to have used their hero power when they did not.
+- Fixed an issue where Fiendish Servant was not able to target the same minion twice.
+- Fixed an issue where Khadgar would incorrectly duplicate minions with Reborn.
+
+
+## **Release v1.12.2 - 2020-05-18**
+**Updated for Hearthstone 17.2.1.48313**
+
+**Changes**:
+- The attack counters are now automatically hidden while in Battlegrounds.
+- Fixed a rounding issue where the Bob's Buddy lethal chance could exceed the chance to win.
+- Improved Bob's Buddy prediction accuracy.
+
+
+## **Release v1.12.0 - 2020-05-13**
+**Updated for Hearthstone 17.2.0.47374**
+
+**Notes**:
+- Hearthstone 17.2 introduced major internal changes. We think we got everything working again, but please let us know if you encounter issues with this release.
+- Some card images added with 17.2 may still be missing. These will be added with the next update.
+
+**Changes**:
+- Improved Bob's Buddy prediction accuracy.
+- Potentially fixed an issue causing decks to not be selected at the start of a game.
+
+
+## **Release v1.11.9 - 2020-05-06**
+**Fixes**:
+- Fixed an issue where some Deathrattle interactions were not handled correctly in Bob's Buddy.
+
+
+## **Release v1.11.8 - 2020-05-05**
+**Changes**:
+- Added Tracking for cards copied by e.g. Maname Lazul and Mind Vision.
+- Improved Bob's Buddy prediction accuracy.
+
+
+## **Release v1.11.7 - 2020-04-30**
+**Fixes**:
+- Fixed an issue where golden minions in Battlegrounds could lead to incorrect outcome predictions.
+
+
+## **Release v1.11.6 - 2020-04-29**
+**New**:
+- Added Bob's Buddy: A Battlegrounds combat simulator showing the likelihood to win, tie or lose.  [Learn more.](https://articles.hsreplay.net/2020/04/24/introducing-bobs-buddy/)
+
+**Fixes**:
+- Fixed an issue where running other deck trackers in parallel may have caused HDT to stop working in some cases.
+- Fixed an issue causing several created cards (e.g. Bombs) to not be tracked correctly. 
+- Fixed an issue where weapons were not correctly accounted for in the attacak mana curve.
+
+**Notes**:
+- This version upgrades to .NET Framework 4.7.2, which means installations of Windows 7 and Windows 8 that are not updated to Service Pack 1 will no longer be able to run HDT.
+- This version updates several dependencies, causing some Plugins to no longer load.
+- Releases v1.11.0-v1.11.5 contained various updates and fixes to Bob's Buddy
+
+
+## **Release v1.10.8 - 2020-04-20**
+**Updated for 17.0.2.45932**
+
+**Fixes**:
+- Fixed an issue where Netherwind Portal was missing from the secret helper.
+- Plugins should now be less likely to cause crashes.
+
+
+## **Release v1.10.7 - 2020-04-09**
+**Updated for 17.0.0.45310**
+
+**Fixes**:
+- Fixed an issue where Snipe, Explosive Runes, Potion of Polymorph and Repentance would get greyed out when playing a dormant minion.
+- Fixed an issue where dormant minions would sometimes count towards damage on board.
+- Fixed an issue where Al'ar, when resurrected from his ashes, would count towards damage on board.
+- Fixed an issue where linked Twitch accounts were not detected correctly in some cases.
+- Fixed an issue where the global statistics panel would not show data for new decks (due to local caching, this may take up to 24 hours to update).
+
+
+## **Release v1.10.6 - 2020-04-07**
+**Updated for Year of the Phoenix**
+
+**Changes**:
+- Added support for Ashes of Outland secrets
+- Added support for card tracking for several new cards
+
+
+## **Release v1.10.5 - 2020-04-04**
+**Fixes**:
+- Fixed an issue where the deck tracker would stop working when playing AI games, caused by an oversight in v1.10.4.
+- Fixed an issue where moving a game between decks would not update the deck in the games list.
+
+
+## **Release v1.10.4 - 2020-04-04**
+**Fixes**:
+- Fixed an issue where the deck tracker would stop working when playing against opponents appearing as offline.
+
+
+## **Release v1.10.3 - 2020-04-02**
+**Changes**:
+- Added a "All Leagues + Legacy" filter option to the constructed stats League filter.
+
+**Fixes**:
+- Fixed an issue where Warrior was missing from the Arena Win/Loss chart.
+- Fixed an issue where Demon Hunter decks were not imported correctly.
+
+
+## **Release v1.10.2 - 2020-03-30**
+**Added support for the new constructed rank system**:
+- Added a "League" filter under `STATS > CONSTRUCTED`, when the Game Mode is set to Ranked, to show games played in a specific league.
+- Games played in the old rank system can still be found by selecting "Legacy" in the League filter.
+
+**Fixes**:
+- Fixed various layout issues introduced by the addition of Demon Hunter and the new rank system.
+
+
+## **Release v1.10.1 - 2020-03-26**
+**Updated for Ashes of Outland**
+- Added basic support for Demon Hunter
+- Updated for Battlegrounds changes
+- Updated for Hall of Fame changes
+
+This update should restore the basic functionality. Support for Demon Hunter card interactions and the new Ranked system coming soon.
+
+
+## **Release v1.10.0 - 2020-03-25**
+**New**:
+- Added a turn counter on the Battlegrounds overlay (`options > overlay > general`)
+- Added a notification at the start of Battlegrounds games to see the HSReplay.net Hero Tier List filtered to the hero choices (`options > tracker > notifications`).
+
+**Changes**:
+- The Battlegrounds overlay is now clickable rather than hover activated.
+
+
+## **Release v1.9.12 - 2020-03-17**
+**Updated for Hearthstone 16.6.0.43246**
+
+
+## **Release v1.9.11 - 2020-02-26**
+**Updated for Hearthstone 16.4.0.42174**
+
+**Fixed**:
+- Fixed an issue where Misdirection secret detection would not work correctly with immune targets.
+
+
+## **Release v1.9.10 - 2020-01-21**
+**Updated for Hearthstone 16.2.0.39954**
+
+
+## **Release v1.9.9 - 2020-01-09**
+**Updated for Hearthstone 16.0.8.39282**
+
+
+## **Release v1.9.8 - 2019-12-20**
+**New**:
+- Added a new counter for Galakrond invocations.
+
+**Changes**:
+- Turn timers are now always hidden while playing Battlegrounds.
+
+
+## **Release v1.9.7 - 2019-12-19**
+**Updated for Hearthstone 16.0.5.38377**
+
+
+## **Release v1.9.6 - 2019-12-11**
+**Fixes**:
+- Fixed an issue that was causing HDT to stop tracking cards and stats under certain conditions.
+
+
+## **Release v1.9.5 - 2019-12-10**
+**Changes**:
+- Added card tracking for serveral new Descent of Dragons cards.
+- The Battlegrounds minion tiers overlay now fades out when hovering opponents in the leaderboard.
+
+**Fixes**:
+- Fixed an issue where Galakrond was not tracked correctly.
+
+
+## **Release v1.9.4 - 2019-12-09**
+**Fixes**:
+- Potentially fixed an issue where the battlegrounds overlay would go off screen.
+- Fixed an issue where HDT would crash when showing tooltips for certain cards.
+- Fixed an issue where HDT would cause a crash during some battlegrounds games.
+
+
+## **Release v1.9.3 - 2019-12-09**
+**Fixes**:
+- Fixed an issue where the last known board state in Battlegrounds was not always reliably tracked.
+
+
+## **Release v1.9.2 - 2019-12-05**
+**Updated for Descent of Dragons**
+
+
+## **Release v1.9.1 - 2019-12-03**
+**New**:
+- Added a new overlay for Battlegrounds, showing minions available in each tavern tier.
+
+**Fixes**:
+- Fixed an issue where pinned shortcuts would not work across updates.
+
+
+## **Release v1.9.0 - 2019-11-14**
+**New: Battlegrounds Support**:
+- Hovering an opponent in the sidebar will now display their last known board state.
+
+**Fixes**:
+- Fixed an issue where the arena dialog would show up after a Battlegrounds match if an arena deck was previously selected.
+- The secret panel has been temporarily disabled in Battlegrounds, until it is fixed to work correctly.
+
+
+## **Release v1.8.22 - 2019-11-05**
+**Updated for Hearthstone 15.6.0.35747**
+
+
+## **Release v1.8.21 - 2019-10-08**
+**Fixes**:
+- Fixed an issue introduced with 15.4.0.34670 where Arena Decks would not be imported. 
+- Fixed an issue introduced with 15.4.0.34670 where Adventure Decks would not be imported. 
+
+
+## **Release v1.8.20 - 2019-10-08**
+**Updated for Hearthstone 15.4.0.34670**
+
+**Fixes**:
+- Fixed an issue introduced with 15.4.0.34670 where HDT would hang when starting Hearthstone. 
+
+**Outstanding issues:**
+- Adventure deck detection broke with 15.4.0.34670. We are hoping we can fix this soon.
+- There might be more issues introduced by the patch that we missed so far. Please let us know if you find any.
+
+
 ## **Release v1.8.19 - 2019-09-23**
 **Fixes**:
 - Fixed an issue causing HDT to occasionally crash when importing Tombs of Terror decks.

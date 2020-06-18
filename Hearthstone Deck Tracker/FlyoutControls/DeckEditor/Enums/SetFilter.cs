@@ -44,5 +44,13 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.DeckEditor.Enums
 		DALARAN = 1130,
 		[LocDescription("MainWindow_DeckBuilder_Filter_Set_Uldum")]
 		ULDUM = 1158,
+		[LocDescription("MainWindow_DeckBuilder_Filter_Set_Dragons")]
+		DRAGONS = 1347,
+		[LocDescription("MainWindow_DeckBuilder_Filter_Set_YOTD")]
+		YEAR_OF_THE_DRAGON = 1403,
+		[LocDescription("MainWindow_DeckBuilder_Filter_Set_BlackTemple")]
+		BLACK_TEMPLE = 1414,
+		[LocDescription("MainWindow_DeckBuilder_Filter_Set_DemonHunterInitiate")]
+		DEMON_HUNTER_INITIATE = 1463,
 	}
 }

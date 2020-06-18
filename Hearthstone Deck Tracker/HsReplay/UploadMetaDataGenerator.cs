@@ -6,6 +6,7 @@ using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.HsReplay.Utility;
 using Hearthstone_Deck_Tracker.Stats;
 using HSReplay;
+using System.Collections.Generic;
 
 namespace Hearthstone_Deck_Tracker.HsReplay
 {
@@ -14,11 +15,16 @@ namespace Hearthstone_Deck_Tracker.HsReplay
 		public static UploadMetaData Generate(GameMetaData gameMetaData, GameStats game)
 		{
 			var metaData = new UploadMetaData();
-			var playerInfo = GetPlayerInfo(game);
-			if(playerInfo != null)
+			var players = GetPlayerInfo(game);
+			if (players != null)
 			{
-				metaData.Player1 = playerInfo.Player1;
-				metaData.Player2 = playerInfo.Player2;
+				if (game.GameMode == GameMode.Battlegrounds)
+					metaData.Players = players;
+				else
+				{
+					metaData.Player1 = players.FirstOrDefault(x => x.Id == 1);
+					metaData.Player2 = players.FirstOrDefault(x => x.Id == 2);
+				}
 			}
 			if(!string.IsNullOrEmpty(gameMetaData?.ServerInfo?.Address))
 				metaData.ServerIp = gameMetaData.ServerInfo.Address;
@@ -37,13 +43,13 @@ namespace Hearthstone_Deck_Tracker.HsReplay
 			if(game?.StartTime > DateTime.MinValue)
 				metaData.MatchStart = game.StartTime.ToString("o");
 			if(game != null)
-				metaData.GameType = game.GameType != GameType.GT_UNKNOWN ? (int)HearthDbConverter.GetBnetGameType(game.GameType, game.Format) : (int)HearthDbConverter.GetGameType(game.GameMode, game.Format);
+				metaData.GameType = (int)HearthDbConverter.GetBnetGameType(game.GameType, game.Format);
 			if(game?.Format != null)
 				metaData.Format = (int)HearthDbConverter.GetFormatType(game.Format);
 			metaData.SpectatorMode = game?.GameMode == GameMode.Spectator;
 			metaData.Reconnected = gameMetaData?.Reconnected ?? false;
 			metaData.Resumable = gameMetaData?.ServerInfo?.Resumable ?? false;
-			metaData.FriendlyPlayerId = game?.FriendlyPlayerId > 0 ? game.FriendlyPlayerId : (playerInfo?.FriendlyPlayerId > 0 ? playerInfo?.FriendlyPlayerId : null);
+			metaData.FriendlyPlayerId = game?.FriendlyPlayerId > 0 ? game.FriendlyPlayerId : (int?)null;
 			var scenarioId = game?.ScenarioId ?? gameMetaData?.ServerInfo?.Mission;
 			if(scenarioId > 0)
 				metaData.ScenarioId = scenarioId;
@@ -60,10 +66,14 @@ namespace Hearthstone_Deck_Tracker.HsReplay
 				metaData.LadderSeason = game.RankedSeasonId;
 			if(gameMetaData?.TwitchVodData != null)
 				metaData.TwitchVod = gameMetaData.TwitchVodData;
+			if(game?.LeagueId > 0)
+				metaData.LeagueId = game.LeagueId;
+			if(game?.GameMode == GameMode.Battlegrounds)
+				metaData.BattlegroundsRaces = game.BattlegroundsRaces?.Cast<int>().OrderBy(x => x).ToArray();
 			return metaData;
 		}
 
-		private static PlayerInfo GetPlayerInfo(GameStats game)
+		private static List<UploadMetaData.Player> GetPlayerInfo(GameStats game)
 		{
 			if(game == null || game.FriendlyPlayerId == 0)
 				return null;
@@ -71,15 +81,48 @@ namespace Hearthstone_Deck_Tracker.HsReplay
 			var friendly = new UploadMetaData.Player();
 			var opposing = new UploadMetaData.Player();
 
-			if(game.Rank > 0)
-				friendly.Rank = game.Rank;
-			if(game.LegendRank > 0)
-				friendly.LegendRank = game.LegendRank;
+			friendly.Id = game.FriendlyPlayerId;
+			opposing.Id = game.OpponentPlayerId;
+
 			if(game.PlayerCardbackId > 0)
 				friendly.Cardback = game.PlayerCardbackId;
-			if(game.Stars > 0)
-				friendly.Stars = game.Stars;
-			if(game.PlayerCards.Sum(x => x.Count) == 30 || game.IsDungeonMatch == true && game.DeckId != Guid.Empty)
+
+			if(game.GameMode == GameMode.Ranked)
+			{
+				if(game.Rank > 0)
+					friendly.Rank = game.Rank;
+				if(game.LegendRank > 0)
+					friendly.LegendRank = game.LegendRank;
+				if(game.Stars > 0)
+					friendly.Stars = game.Stars;
+				if(game.StarLevel > 0)
+					friendly.StarLevel = game.StarLevel;
+				if(game.StarMultiplier > 0)
+					friendly.StarMultiplier = game.StarMultiplier;
+
+				if(game.StarsAfter > 0)
+					friendly.StarsAfter = game.StarsAfter;
+				if(game.StarLevelAfter > 0)
+					friendly.StarLevelAfter = game.StarLevelAfter;
+				if(game.LegendRankAfter > 0)
+					friendly.LegendRankAfter = game.LegendRankAfter;
+
+				if(game.OpponentRank > 0)
+					opposing.Rank = game.OpponentRank;
+				if(game.OpponentLegendRank > 0)
+					opposing.LegendRank = game.OpponentLegendRank;
+				if(game.OpponentStarLevel > 0)
+					opposing.StarLevel = game.OpponentStarLevel;
+			}
+
+			if(game.GameMode == GameMode.Battlegrounds)
+			{
+				if(game.BattlegroundsRating > 0)
+					friendly.BattlegroundsRating = game.BattlegroundsRating;
+				if(game.BattlegroundsRatingAfter > 0)
+					friendly.BattlegroundsRatingAfter = game.BattlegroundsRatingAfter;
+			}
+			else if(game.PlayerCards.Sum(x => x.Count) == 30 || game.IsDungeonMatch == true && game.DeckId != Guid.Empty)
 			{
 				friendly.DeckList = game.PlayerCards.Where(x => x.Id != Database.UnknownCardId).SelectMany(x => Enumerable.Repeat(x.Id, x.Count)).ToArray();
 				if(game.HsDeckId > 0)
@@ -99,15 +142,13 @@ namespace Hearthstone_Deck_Tracker.HsReplay
 				if(game.BrawlLosses > 0)
 					friendly.Losses = game.BrawlLosses;
 			}
-			if(game.OpponentRank > 0)
-				opposing.Rank = game.OpponentRank;
-			if(game.OpponentLegendRank > 0)
-				opposing.LegendRank = game.OpponentLegendRank;
 			if(game.OpponentCardbackId > 0)
 				opposing.Cardback = game.OpponentCardbackId;
 
-			return new PlayerInfo(game.FriendlyPlayerId == 1 ? friendly : opposing,
-				game.FriendlyPlayerId == 2 ? friendly : opposing);
+			return new List<UploadMetaData.Player>() {
+				friendly,
+				opposing
+			};
 		}
 	}
 

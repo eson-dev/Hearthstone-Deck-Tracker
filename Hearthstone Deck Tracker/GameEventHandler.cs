@@ -25,6 +25,7 @@ using Hearthstone_Deck_Tracker.Windows;
 using HSReplay.LogValidation;
 using static Hearthstone_Deck_Tracker.Enums.GameMode;
 using static HearthDb.Enums.GameTag;
+using Hearthstone_Deck_Tracker.BobsBuddy;
 
 #endregion
 
@@ -65,7 +66,8 @@ namespace Hearthstone_Deck_Tracker
 											 || _game.CurrentGameMode == Ranked && Config.Instance.HsReplayUploadRanked
 											 || _game.CurrentGameMode == Friendly && Config.Instance.HsReplayUploadFriendly
 											 || _game.CurrentGameMode == Casual && Config.Instance.HsReplayUploadCasual
-											 || _game.CurrentGameMode == Spectator && Config.Instance.HsReplayUploadSpectator;
+											 || _game.CurrentGameMode == Spectator && Config.Instance.HsReplayUploadSpectator
+											 || _game.IsBattlegroundsMatch && Config.Instance.HsReplayUploadBattlegrounds;
 
 		public void HandleInMenu()
 		{
@@ -124,47 +126,53 @@ namespace Hearthstone_Deck_Tracker
 		}
 
 		private bool _savedReplay;
-		private async Task SaveReplays()
+		private async Task SaveReplays(GameStats gs)
 		{
-			if(!_savedReplay && _game.CurrentGameStats != null)
+			if(gs == null || _savedReplay)
+				return;
+			_savedReplay = true;
+
+			var complete = await LogIsComplete();
+
+			if(complete && gs.GameMode == Ranked)
+				await UpdatePostGameRanks(gs);
+
+			if(complete && gs.GameMode == Battlegrounds)
+				await UpdatePostGameRating(gs);
+
+			var powerLog = new List<string>();
+			foreach(var stored in _game.StoredPowerLogs.Where(x => x.Item1 == _game.MetaData.ServerInfo.GameHandle))
+				powerLog.AddRange(stored.Item2);
+			powerLog.AddRange(_game.PowerLog);
+
+			var createGameCount = 0;
+			powerLog = powerLog.TakeWhile(x => !(x.Contains("CREATE_GAME") && createGameCount++ == 1)).ToList();
+
+			if(Config.Instance.RecordReplays && RecordCurrentGameMode && _game.Entities.Count > 0 && !_game.SavedReplay && gs.ReplayFile == null)
+				gs.ReplayFile = ReplayMaker.SaveToDisk(gs, powerLog);
+
+			if(Config.Instance.HsReplayAutoUpload && UploadCurrentGameMode)
 			{
-				_savedReplay = true;
-				await LogIsComplete();
-				var powerLog = new List<string>();
-				foreach(var stored in _game.StoredPowerLogs.Where(x => x.Item1 == _game.MetaData.ServerInfo.GameHandle))
-					powerLog.AddRange(stored.Item2);
-				powerLog.AddRange(_game.PowerLog);
-
-				var createGameCount = 0;
-				powerLog = powerLog.TakeWhile(x => !(x.Contains("CREATE_GAME") && createGameCount++ == 1)).ToList();
-
-				if(Config.Instance.RecordReplays && RecordCurrentGameMode && _game.Entities.Count > 0 && !_game.SavedReplay
-					&& _game.CurrentGameStats.ReplayFile == null)
-					_game.CurrentGameStats.ReplayFile = ReplayMaker.SaveToDisk(_game.CurrentGameStats, powerLog);
-
-				if(Config.Instance.HsReplayAutoUpload && UploadCurrentGameMode)
+				var log = powerLog.ToArray();
+				var validationResult = LogValidator.Validate(log);
+				if(validationResult.IsValid)
+					await LogUploader.Upload(log, (GameMetaData)_game.MetaData.Clone(), gs);
+				else 
 				{
-					var log = powerLog.ToArray();
-					var validationResult = LogValidator.Validate(log);
-					if(validationResult.IsValid)
-						LogUploader.Upload(log, (GameMetaData)_game.MetaData.Clone(), _game.CurrentGameStats).Forget();
-					else 
-					{
-						Log.Error("Invalid log: " + validationResult.Reason);
-						Influx.OnEndOfGameUploadError(validationResult.Reason);
-					}
+					Log.Error("Invalid log: " + validationResult.Reason);
+					Influx.OnEndOfGameUploadError(validationResult.Reason);
 				}
 			}
 		}
 
-		private async Task LogIsComplete()
+		private async Task<bool> LogIsComplete()
 		{
 			if(LogContainsGoldRewardState || _game.CurrentGameMode == Practice && LogContainsStateComplete)
-				return;
+				return true;
 			Log.Info("GOLD_REWARD_STATE not found");
 			await Task.Delay(500);
 			if(LogContainsStateComplete || _game.IsInMenu)
-				return;
+				return LogContainsStateComplete;
 			Log.Info("STATE COMPLETE not found");
 			for(var i = 0; i < 5; i++)
 			{
@@ -173,6 +181,32 @@ namespace Hearthstone_Deck_Tracker
 					break;
 				Log.Info($"Waiting for STATE COMPLETE... ({i})");
 			}
+			return LogContainsStateComplete;
+		}
+
+		private async Task UpdatePostGameRanks(GameStats gs)
+		{
+			var medalInfo = await Helper.RetryWhileNull(Reflection.GetMedalInfo);
+			if(medalInfo == null)
+			{
+				Log.Warn("Could not get MedalInfo");
+				return;
+			}
+			var data = gs.Format == Format.Wild ? medalInfo.Wild : medalInfo.Standard;
+			gs.StarsAfter = data.Stars;
+			gs.StarLevelAfter = data.StarLevel;
+			gs.LegendRankAfter = data.LegendRank;
+		}
+
+		private async Task UpdatePostGameRating(GameStats gs)
+		{
+			var data = await Helper.RetryWhileNull(Reflection.GetBaconRatingChangeData);
+			if(data == null)
+			{
+				Log.Warn("Could not get battlegrounds rating");
+				return;
+			}
+			gs.BattlegroundsRatingAfter = data.NewRating;
 		}
 
 		private bool LogContainsGoldRewardState
@@ -209,6 +243,12 @@ namespace Hearthstone_Deck_Tracker
 
 		private void OnAttackEvent()
 		{
+			if(_game.IsBattlegroundsMatch && Config.Instance.RunBobsBuddy && _game.CurrentGameStats != null)
+			{
+				BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, _game.GetTurnNumber())
+					.UpdateAttackingEntities(_attackingEntity, _defendingEntity);
+			}
+
 			var attackInfo = new AttackInfo((Card)_attackingEntity.Card.Clone(), (Card)_defendingEntity.Card.Clone());
 			if(_attackingEntity.IsControlledBy(_game.Player.Id))
 				GameEvents.OnPlayerMinionAttack.Execute(attackInfo);
@@ -314,6 +354,8 @@ namespace Hearthstone_Deck_Tracker
 			TurnTimer.Instance.SetPlayer(player);
 			if(player == ActivePlayer.Player && !_game.IsInMenu)
 			{
+				if(_game.IsBattlegroundsMatch && _game.CurrentGameStats != null && turn.Item2 > 1)
+					BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, turn.Item2 - 1).StartShopping(true);
 				switch(Config.Instance.TurnStartAction)
 				{
 						case HsActionType.Flash:
@@ -324,11 +366,15 @@ namespace Hearthstone_Deck_Tracker
 							break;
 				}
 			}
+			Core.Overlay.TurnCounter.UpdateTurn(turn.Item2);
 		}
 
 		private void HandleThaurissanCostReduction()
 		{
-			var thaurissans = _game.Opponent.Board.Where(x => x.CardId == HearthDb.CardIds.Collectible.Neutral.EmperorThaurissan && !x.HasTag(SILENCED)).ToList();
+			var thaurissans = _game.Opponent.Board.Where(x =>
+				(x.CardId == HearthDb.CardIds.Collectible.Neutral.EmperorThaurissan
+					|| x.CardId == HearthDb.CardIds.NonCollectible.Neutral.EmperorThaurissanWILD_EVENT)
+				&& !x.HasTag(SILENCED)).ToList();
 			if(!thaurissans.Any())
 				return;
 
@@ -369,6 +415,7 @@ namespace Hearthstone_Deck_Tracker
 			_game.CacheMatchInfo();
 			_game.CacheGameType();
 			_game.CacheSpectator();
+
 			_game.MetaData.ServerInfo = Reflection.GetServerInfo();
 			TurnTimer.Instance.Start(_game).Forget();
 
@@ -379,6 +426,9 @@ namespace Hearthstone_Deck_Tracker
 			Core.Windows.CapturableOverlay?.UpdateContentVisibility();
 			GameEvents.OnGameStart.Execute();
 			LiveDataManager.WatchBoardState();
+
+			if(_game.IsBattlegroundsMatch && _game.CurrentGameMode == GameMode.Spectator)
+				Core.Overlay.ShowBgsTopBar();
 		}
 
 		private void HandleAdventureRestart()
@@ -406,6 +456,11 @@ namespace Hearthstone_Deck_Tracker
 				Core.Overlay.HideTimers();
 				DeckManager.ResetAutoSelectCount();
 				LiveDataManager.Stop();
+				if(_game.IsBattlegroundsMatch)
+				{
+					BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, _game.GetTurnNumber())
+						.StartShopping(!_game.CurrentGameStats.WasConceded);
+				}
 				Log.Info("Game ended...");
 				_game.InvalidateMatchInfoCache();
 				if(_game.CurrentGameMode == Spectator && _game.CurrentGameStats.Result == GameResult.None)
@@ -439,11 +494,20 @@ namespace Hearthstone_Deck_Tracker
 				if(_game.CurrentGameMode == Ranked && _game.MatchInfo != null)
 				{
 					var wild = _game.CurrentFormat == Format.Wild;
-					_game.CurrentGameStats.Rank = wild ? _game.MatchInfo.LocalPlayer.WildRank : _game.MatchInfo.LocalPlayer.StandardRank;
-					_game.CurrentGameStats.OpponentRank = wild ? _game.MatchInfo.OpposingPlayer.WildRank : _game.MatchInfo.OpposingPlayer.StandardRank;
-					_game.CurrentGameStats.LegendRank = wild ? _game.MatchInfo.LocalPlayer.WildLegendRank : _game.MatchInfo.LocalPlayer.StandardLegendRank;
-					_game.CurrentGameStats.OpponentLegendRank = wild ? _game.MatchInfo.OpposingPlayer.WildLegendRank : _game.MatchInfo.OpposingPlayer.StandardLegendRank;
-					_game.CurrentGameStats.Stars = wild ? _game.MatchInfo.LocalPlayer.WildStars : _game.MatchInfo.LocalPlayer.StandardStars;
+					var playerInfo = wild ? _game.MatchInfo.LocalPlayer.Wild : _game.MatchInfo.LocalPlayer.Standard;
+					var opponentInfo = wild ? _game.MatchInfo.OpposingPlayer.Wild : _game.MatchInfo.OpposingPlayer.Standard;
+					_game.CurrentGameStats.LeagueId = playerInfo.LeagueId ?? 0;
+					if (playerInfo.LeagueId < 5)
+					{
+						_game.CurrentGameStats.Rank = wild ? _game.MatchInfo.LocalPlayer.WildRank : _game.MatchInfo.LocalPlayer.StandardRank;
+						_game.CurrentGameStats.OpponentRank = wild ? _game.MatchInfo.OpposingPlayer.WildRank : _game.MatchInfo.OpposingPlayer.StandardRank;
+					}
+					_game.CurrentGameStats.StarLevel = playerInfo.StarLevel ?? 0;
+					_game.CurrentGameStats.StarMultiplier = playerInfo.StarMultipier ?? 0;
+					_game.CurrentGameStats.Stars = playerInfo.Stars ?? 0;
+					_game.CurrentGameStats.OpponentStarLevel = opponentInfo.StarLevel ?? 0;
+					_game.CurrentGameStats.LegendRank = playerInfo.LegendRank ?? 0;
+					_game.CurrentGameStats.OpponentLegendRank = opponentInfo.LegendRank ?? 0;
 				}
 				else if(_game.CurrentGameMode == Arena)
 				{
@@ -455,11 +519,16 @@ namespace Hearthstone_Deck_Tracker
 					_game.CurrentGameStats.BrawlWins = _game.BrawlInfo.Wins;
 					_game.CurrentGameStats.BrawlLosses = _game.BrawlInfo.Losses;
 				}
+				else if (_game.IsBattlegroundsMatch && _game.BattlegroundsRatingInfo != null)
+				{
+					_game.CurrentGameStats.BattlegroundsRating = _game.BattlegroundsRatingInfo.Rating;
+				}
 				_game.CurrentGameStats.GameType = _game.CurrentGameType;
 				_game.CurrentGameStats.ServerInfo = _game.MetaData.ServerInfo;
 				_game.CurrentGameStats.PlayerCardbackId = _game.MatchInfo?.LocalPlayer.CardBackId ?? 0;
 				_game.CurrentGameStats.OpponentCardbackId = _game.MatchInfo?.OpposingPlayer.CardBackId ?? 0;
 				_game.CurrentGameStats.FriendlyPlayerId = _game.MatchInfo?.LocalPlayer.Id ?? 0;
+				_game.CurrentGameStats.OpponentPlayerId = _game.MatchInfo?.OpposingPlayer.Id ?? 0;
 				_game.CurrentGameStats.ScenarioId = _game.MatchInfo?.MissionId ?? 0;
 				_game.CurrentGameStats.BrawlSeasonId = _game.MatchInfo?.BrawlSeasonId ?? 0;
 				_game.CurrentGameStats.RankedSeasonId = _game.MatchInfo?.RankedSeasonId ?? 0;
@@ -573,13 +642,23 @@ namespace Hearthstone_Deck_Tracker
 				if(_game.StoredGameStats != null)
 					_game.CurrentGameStats.StartTime = _game.StoredGameStats.StartTime;
 
-				await SaveReplays();
-
 				if(Config.Instance.ShowGameResultNotifications && RecordCurrentGameMode)
 				{
 					var deckName = _assignedDeck == null ? "No deck - " + _game.CurrentGameStats.PlayerHero : _assignedDeck.NameAndVersion;
 					ToastManager.ShowGameResultToast(deckName, _game.CurrentGameStats);
 				}
+
+				await SaveReplays(_game.CurrentGameStats);
+
+				if(_game.IsBattlegroundsMatch)
+				{
+					if(LogContainsStateComplete)
+						Sentry.SendQueuedBobsBuddyEvents(_game.CurrentGameStats.HsReplay.UploadId);
+					else
+						Sentry.ClearBobsBuddyEvents();
+				}
+						
+				Influx.SendQueuedMetrics();
 			}
 			catch(Exception ex)
 			{
@@ -717,6 +796,59 @@ namespace Hearthstone_Deck_Tracker
 			GameEvents.OnOpponentFatigue.Execute(currentDamage);
 		}
 
+		public void HandleBeginMulligan()
+		{
+			if(_game.IsBattlegroundsMatch)
+			{
+				HandleBattlegroundsStart();
+
+				if(_game.CurrentGameStats != null)
+					_game.CurrentGameStats.BattlegroundsRaces = BattlegroundsUtils.GetAvailableRaces(_game.CurrentGameStats.GameId);
+			}
+		}
+
+		public void HandlePlayerMulliganDone()
+		{
+			if(_game.IsBattlegroundsMatch)
+				Core.Overlay.HideBattlegroundsHeroPanel();
+		}
+
+		private async void HandleBattlegroundsStart()
+		{
+			if(Config.Instance.ShowBattlegroundsToast)
+			{
+				for(var i = 0; i < 10; i++)
+				{
+					await Task.Delay(500);
+					var heroes = Core.Game.Player.PlayerEntities.Where(x => x.IsHero && x.HasTag(BACON_HERO_CAN_BE_DRAFTED));
+					if(heroes.Count() < 2)
+						continue;
+					await Task.Delay(500);
+					if(_game.GameEntity?.GetTag(STEP) != (int)Step.BEGIN_MULLIGAN)
+					{
+						Core.Overlay.ShowBgsTopBar();
+						break;
+					}
+
+					var heroIds = heroes.Select(x => x.Card.DbfIf).ToArray();
+
+					// Wait for the game to fade in
+					await Task.Delay(3000);
+
+					if(Config.Instance.HideOverlay)
+					{
+						ToastManager.ShowBattlegroundsToast(heroIds);
+						Core.Overlay.ShowBgsTopBar();
+					}
+					else
+						Core.Overlay.ShowBattlegroundsHeroPanel(heroIds);
+					break;
+				}
+			}
+			else
+				Core.Overlay.ShowBgsTopBar();
+		}
+
 		#region Player
 
 		public void HandlePlayerGetToDeck(Entity entity, string cardId, int turn)
@@ -775,7 +907,7 @@ namespace Hearthstone_Deck_Tracker
 				return;
 			if(!entity.IsSecret)
 			{
-				if(entity.IsQuest)
+				if(entity.IsQuest || entity.IsSideQuest)
 				{
 					_game.Player.QuestPlayedFromHand(entity, turn);
 					GameEvents.OnPlayerPlay.Execute(Database.GetCardFromId(cardId));
@@ -886,6 +1018,11 @@ namespace Hearthstone_Deck_Tracker
 		public void HandleChameleosReveal(string cardId)
 		{
 			_game.Opponent.ChameleosReveal(cardId);
+			Core.UpdateOpponentCards();
+		}
+
+		public void HandleCardCopy()
+		{
 			Core.UpdateOpponentCards();
 		}
 
@@ -1008,7 +1145,7 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(!entity.IsSecret)
 			{
-				if(entity.IsQuest)
+				if(entity.IsQuest || entity.IsSideQuest)
 				{
 					_game.Opponent.QuestPlayedFromHand(entity, turn);
 					GameEvents.OnOpponentPlay.Execute(Database.GetCardFromId(cardId));

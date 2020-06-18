@@ -8,11 +8,11 @@
     <authors>HearthSim</authors>
     <description>Hearthstone Deck Tracker</description>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <copyright>Copyright 2018 HearthSim</copyright>
+    <copyright>Copyright 2020 HearthSim</copyright>
     <dependencies />
   </metadata>
   <files>
-    <file src="..\Hearthstone Deck Tracker\bin\x86\Squirrel-Clean\*.*" target="lib\net45\" />
-    <file src="..\Hearthstone Deck Tracker\bin\x86\Squirrel-Clean\**\*.*" target="lib\net45\" />
+    <file src="..\Hearthstone Deck Tracker\bin\x86\Squirrel-Clean\*.*" target="lib\net472\" />
+    <file src="..\Hearthstone Deck Tracker\bin\x86\Squirrel-Clean\**\*.*" target="lib\net472\" />
   </files>
 </package>

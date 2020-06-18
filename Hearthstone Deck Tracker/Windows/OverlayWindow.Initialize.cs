@@ -45,6 +45,17 @@ namespace Hearthstone_Deck_Tracker.Windows
 				RectPlayerHand8,
 				RectPlayerHand9
 			});
+			_leaderboardIcons.AddRange(new[]
+			{
+				BattlegroundsTile0,
+				BattlegroundsTile1,
+				BattlegroundsTile2,
+				BattlegroundsTile3,
+				BattlegroundsTile4,
+				BattlegroundsTile5,
+				BattlegroundsTile6,
+				BattlegroundsTile7,
+			});
 
 			const double tWidth = 1024.0;
 			const double tHeight = 768.0;
@@ -135,6 +146,10 @@ namespace Hearthstone_Deck_Tracker.Windows
 			_movableElements.Add(WotogIconsPlayer, new ResizeGrip());
 			_movableElements.Add(WotogIconsOpponent, new ResizeGrip());
 			_movableElements.Add(LblPlayerTurnTime, new ResizeGrip());
+
+			_clickableElements.Add(BattlegroundsMinionsPanel.BgTierIcons);
+			_clickableElements.Add(HeroNotificationPanel);
+			_clickableElements.Add(BobsBuddyDisplay);
 		}
 	}
 }

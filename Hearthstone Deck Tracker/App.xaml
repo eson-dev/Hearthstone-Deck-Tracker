@@ -26,6 +26,7 @@
                     <ImageSource x:Key="HsReplayIcon">Resources/hsreplay_logo_blue.png</ImageSource>
                     <ImageSource x:Key="HsReplayIconBlue">Resources/hsreplay_logo_blue.png</ImageSource>
                     <ImageSource x:Key="HsReplayIconWhite">Resources/hsreplay_logo_white.png</ImageSource>
+                    <ImageSource x:Key="ClassIconDemonHunterRound">Resources/ClassIcons/Round/demonhunter.png</ImageSource>
                     <ImageSource x:Key="ClassIconDruidRound">Resources/ClassIcons/Round/druid.png</ImageSource>
                     <ImageSource x:Key="ClassIconHunterRound">Resources/ClassIcons/Round/hunter.png</ImageSource>
                     <ImageSource x:Key="ClassIconMageRound">Resources/ClassIcons/Round/mage.png</ImageSource>
@@ -40,6 +41,7 @@
                     <ImageSource x:Key="TwitchExtSecret">Resources/twitch_ext_secret.png</ImageSource>
                     <ImageSource x:Key="CollectionPromo">Resources/collection_promo.jpg</ImageSource>
                     <ImageSource x:Key="HearthstoneIcon">Resources/hearthstone-icon.png</ImageSource>
+                    <ImageSource x:Key="BgsToastBackground">Resources/bgs-toast-background.jpg</ImageSource>
                 </ResourceDictionary>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
@@ -88,6 +90,9 @@
                     <Style TargetType="ListBox" BasedOn="{StaticResource MetroListBox}">
                         <Setter Property="ScrollViewer.PanningMode" Value="VerticalOnly"/>
                         <EventSetter Event="ManipulationBoundaryFeedback" Handler="HandleManipulationBoundaryFeedback"/>
+                    </Style>
+                    <Style TargetType="GroupBox" BasedOn="{StaticResource MetroGroupBox}">
+                        <Setter Property="Margin" Value="5"/>
                     </Style>
                     <Style TargetType="ScrollViewer">
                         <Setter Property="PanningMode" Value="VerticalOnly"/>
