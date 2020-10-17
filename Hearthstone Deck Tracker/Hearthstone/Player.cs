@@ -31,9 +31,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public int Fatigue { get; set; }
 		public bool IsLocalPlayer { get; }
 		public int SpellsPlayedCount { get; private set; }
+		public List<string> CardsPlayedThisTurn { get; private set; } = new List<string>();
 		public bool IsPlayingWhizbang { get; set; }
 		public int PogoHopperPlayedCount {get; private set;}
 		public string LastDiedMinionCardId { get; set; }
+		public string LastDrawnCardId { get; set; }
 
 		public bool HasCoin => Hand.Any(e => e.CardId == HearthDb.CardIds.NonCollectible.Neutral.TheCoin);
 		public int HandCount => Hand.Count();
@@ -202,6 +204,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			InDeckPrecitions.Clear();
 			SpellsPlayedCount = 0;
 			PogoHopperPlayedCount = 0;
+			CardsPlayedThisTurn.Clear();
+			LastDrawnCardId = null;
 		}
 
 		public void Draw(Entity entity, int turn)
@@ -219,6 +223,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 					entity.Info.Hidden = true;
 			}
 			entity.Info.Turn = turn;
+			LastDrawnCardId = entity.CardId;
 			Log(entity);
 		}
 
@@ -251,7 +256,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			entity.Info.Hidden = false;
 			entity.Info.Turn = turn;
 			entity.Info.CostReduction = 0;
+			CardsPlayedThisTurn.Add(entity.CardId);
 			Log(entity);
+		}
+
+		public void OnTurnStart()
+		{
+			CardsPlayedThisTurn.Clear();
 		}
 
 		public void DeckToPlay(Entity entity, int turn)
@@ -364,6 +375,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public void SecretTriggered(Entity entity, int turn)
 		{
 			entity.Info.Turn = turn;
+			_game.SecretsManager.SecretTriggered(entity);
 			Log(entity);
 		}
 

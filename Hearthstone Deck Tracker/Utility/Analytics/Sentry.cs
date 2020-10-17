@@ -6,6 +6,8 @@ using System.Linq;
 using BobsBuddy;
 using BobsBuddy.Simulation;
 using Hearthstone_Deck_Tracker.BobsBuddy;
+using Hearthstone_Deck_Tracker.Enums;
+using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
 using Hearthstone_Deck_Tracker.Utility.Extensions;
 using SharpRaven;
@@ -46,14 +48,13 @@ namespace Hearthstone_Deck_Tracker.Utility.Analytics
 		private static int BobsBuddyExceptionsSent;
 		private static Queue<SentryEvent> BobsBuddyEvents = new Queue<SentryEvent>();
 
-		public static void QueueBobsBuddyTerminalCase(TestInput testInput, TestOutput output, string result, int turn, List<string> debugLog)
+		public static void QueueBobsBuddyTerminalCase(TestInput testInput, TestOutput output, string result, int turn, List<string> debugLog, Region region)
 		{
 			if(BobsBuddyEventsSent >= MaxBobsBuddyEvents)
 				return;
 			// Clean up data
 			testInput.RemoveSelfReferencesFromMinions();
 			output.ClearListsForReporting(); //ignoring for some temporary debugging
-			output.results.Clear();
 
 			var msg = new SentryMessage($"BobsBuddy {BobsBuddyUtils.VersionString}: Incorrect Terminal Case: {result}");
 
@@ -67,7 +68,10 @@ namespace Hearthstone_Deck_Tracker.Utility.Analytics
 				ExitCondition = output.myExitCondition.ToString(),
 				Input = testInput,
 				Output = output,
-				Log = debugLog
+				Log = ReverseAndClone(debugLog),
+				Region = region,
+				CanRemoveLichKing = BobsBuddyInvoker.CanRemoveLichKing
+
 			};
 
 			var bbEvent = new SentryEvent(msg)
@@ -75,6 +79,8 @@ namespace Hearthstone_Deck_Tracker.Utility.Analytics
 				Level = ErrorLevel.Warning,
 				Extra = data,
 			};
+
+			bbEvent.Tags.Add("region", data.Region.ToString());
 
 			bbEvent.Fingerprint.Add(result);
 			bbEvent.Fingerprint.Add(BobsBuddyUtils.VersionString);
@@ -102,18 +108,19 @@ namespace Hearthstone_Deck_Tracker.Utility.Analytics
 		{
 			if(BobsBuddyExceptionsSent >= MaxBobsBuddyExceptions)
 				return;
+			if(input == null)
+				return;
 			BobsBuddyExceptionsSent++;
 
 			// Clean up data
 			input.RemoveSelfReferencesFromMinions();
-
 			var data = new BobsBuddyData()
 			{
 				ShortId = "",
 				Turn = turn,
 				ThreadCount = BobsBuddyInvoker.ThreadCount,
 				Input = input,
-				Log = debugLog
+				Log = ReverseAndClone(debugLog)
 			};
 
 			var bbEvent = new SentryEvent(ex)
@@ -126,6 +133,13 @@ namespace Hearthstone_Deck_Tracker.Utility.Analytics
 			bbEvent.Fingerprint.Add(BobsBuddyUtils.VersionString);
 
 			BobsBuddyEvents.Enqueue(bbEvent);
+		}
+
+		private static List<string> ReverseAndClone(List<string> toReverseAndClone)
+		{
+			var toReturn = toReverseAndClone.ToList();
+			toReturn.Reverse();
+			return toReturn;
 		}
 
 		public static void ClearBobsBuddyEvents() => BobsBuddyEvents.Clear();
@@ -141,8 +155,12 @@ namespace Hearthstone_Deck_Tracker.Utility.Analytics
 			public TestInput Input { get; set; }
 			public TestOutput Output { get; set; }
 
+			public Region Region { get; set; }
+
 			public List<string> Log { get; set; }
 			public string Replay => $"https://hsreplay.net/replay/{ShortId}#turn={Turn}b";
+
+			public bool CanRemoveLichKing { get; set; }
 		}
 	}
 }

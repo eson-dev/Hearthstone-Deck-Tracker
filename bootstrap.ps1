@@ -1,3 +1,5 @@
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 if (Test-Path "nuget.exe") {
 	Invoke-Expression "./nuget restore"
 }
@@ -33,7 +35,7 @@ FetchLib "HearthMirror"
 FetchLib "HSReplay"
 FetchLib "BobsBuddy"
 
-git clone "https://github.com/HearthSim/HDT-Localization" "HDT-Localization"
+git clone -q "https://github.com/HearthSim/HDT-Localization" "HDT-Localization"
 
 Copy-Item "HDT-Localization\*.resx" "Hearthstone Deck Tracker\Properties\" -Force
 

@@ -1,3 +1,90 @@
+## **Release v1.13.8 - 2020-09-08**
+**Updated for Hearthstone 18.4.2.62331**
+
+## **Release v1.13.7 - 2020-10-07**
+
+**Bob's Buddy**
+-Add information about the average damage given and taken in combat.
+-Fix an issue where Wildfire Elemental would sometimes damage the wrong minion.
+-Fix an issue where golden Crackling Cyclone's would sometimes not get Mega Windfury.
+
+## **Release v1.13.6 - 2020-09-29**
+**Updated for Hearthstone 18.4.0.60352**
+
+
+## **Release v1.13.5 - 2020-09-08**
+**Updated for Hearthstone 18.2.0.58213**
+
+**Fixes**:
+- Fixed an issue where Bob's Buddy might crash when facing Lich King.
+
+
+## **Release v1.13.4 - 2020-09-03**
+
+**Bob's Buddy**
+- Added additional instrumentation to track down Lich King prediction inaccuracies.
+
+
+## **Release v1.13.3 - 2020-09-01**
+
+**Fixes**:
+- Fixed an issue where additional secrets could be greyed out when the opponent had multiple secrets in play and Counterspell was triggered.
+- Fixed an issue where Aranna Starseeker's last board was not tracked between transforming to Aranna, Unleashed.
+
+**Bob's Buddy**
+- Fixed an issue where activations of Lich King's hero power would occasionally be missed.
+
+
+## **Release v1.13.2 - 2020-08-18**
+**Updated for Hearthstone 18.0.2.56359**
+
+**Fixes**:
+- Fixed an issue where Zoobot would still appear on the Battlegrounds minion list.
+- Fixed an issue where HDT would not work while playing Millhouse Manastorm with the Korean localization of Hearthstone.
+- Fixed an issue where drawing Transfer Student would add another copy to the deck.
+
+
+## **Release v1.13.1 - 2020-08-06**
+
+**Changes**:
+- Added support for Plagiarize.
+- Added tracking support for most Scholomance Academy cards.
+
+
+## **Release v1.13.0 - 2020-07-20**
+**Updated for Scholomance Academy**
+
+
+## **Release v1.12.17 - 2020-07-20**
+
+**Fixes**:
+- Fixed an issue where HDT would not correctly start on Windows 10, version 2004.
+
+
+## **Release v1.12.16 - 2020-07-14**
+**Updated for Hearthstone 17.6.0.53261**
+
+**Bob's Buddy**:
+-Fixed an issue where Khadgar-copied Sky Pirates wouldn't trigger Arcane Cannons.
+-Fixed an issue where Waxrider Toggwaggle would be able to save itself after being hit by a cleave minion (in response to Blizzard server-side changes).
+-Fixed an issue where a Baron Rivendare killed in the same attack as a Deathrattle minion wouldn't double the Deathrattle.
+
+
+## **Release v1.12.14 - 2020-07-08**
+
+**Bob's Buddy**:
+- Fixed an issue where Khadgar paired with a Scallywag would summon too few Sky Pirates.
+
+
+## **Release v1.12.13 - 2020-07-02**
+
+**Bob's Buddy**:
+- Fixed an issue where King Bagurgle triggered by Monstrous Macaw would buff itself.
+- Fixed an issue where duplicate Hero Powers would not stack (e.g. Deathwing vs Sir Finnley).
+- Fixed an issue where Deflect-o-Bot Divine Shield trigger did not correctly interact with Deathrattles.
+- Updated Khadgar to be able to duplicate minions with Reborn (this was a server-side change by Blizzard).
+
+
 ## **Release v1.12.12 - 2020-06-18**
 **Updated for Hearthstone 17.4.1.51510**
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HearthDb.Enums;
+using Hearthstone_Deck_Tracker.BobsBuddy;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
@@ -118,7 +119,7 @@ namespace Hearthstone_Deck_Tracker.Live
 			var deck = DeckList.Instance.ActiveDeck;
 			var games = deck?.GetRelevantGames();
 			var fullDeckList = new Dictionary<int, int>();
-			if (DeckList.Instance.ActiveDeckVersion != null)
+			if(DeckList.Instance.ActiveDeckVersion != null)
 			{
 				foreach(var card in DeckList.Instance.ActiveDeckVersion.Cards)
 					fullDeckList[card.DbfIf] = card.Count;
@@ -131,7 +132,7 @@ namespace Hearthstone_Deck_Tracker.Live
 				foreach(var card in player.GetPlayerCardList(false, false, false).Where(x => !x.Jousted))
 				{
 					var inDeck = card.IsCreated ? 0 : FullCount(card.DbfIf);
-					playerCardsDict.Add(new []{card.DbfIf, card.Count, inDeck});
+					playerCardsDict.Add(new[] { card.DbfIf, card.Count, inDeck });
 				}
 			}
 			var format = Core.Game.CurrentFormat ?? Format.Wild;
@@ -144,7 +145,7 @@ namespace Hearthstone_Deck_Tracker.Live
 					Board = SortedDbfIds(player.Board.Where(x => x.IsMinion)),
 					Deck = new BoardStateDeck
 					{
-						Cards =  playerCardsDict,
+						Cards = playerCardsDict,
 						Name = deck?.Name,
 						Format = (deck?.IsWildDeck ?? false) ? FormatType.FT_WILD : FormatType.FT_STANDARD,
 						Hero = Database.GetHeroCardFromClass(deck?.Class)?.DbfIf ?? 0,
@@ -182,6 +183,77 @@ namespace Hearthstone_Deck_Tracker.Live
 					Fatigue = Core.Game.OpponentEntity.GetTag(GameTag.FATIGUE)
 				},
 				GameType = gameType,
+				BobsBuddyOutput = gameType == BnetGameType.BGT_BATTLEGROUNDS ? GetBobsBuddyState() : null
+			};
+		}
+
+		private Data.BobsBuddyState GetBobsBuddyState()
+		{
+			if(Core.Game.CurrentGameStats == null || Core.Game.GameEntity == null)
+				return null;
+			var turn = Core.Game.GameEntity.GetTag(GameTag.TURN) %2 == 0? Core.Game.GetTurnNumber() : Core.Game.GetTurnNumber() - 1;
+			
+			var invokerInstance = BobsBuddyInvoker.GetInstance(Core.Game.CurrentGameStats.GameId, Math.Max(turn, 1) , false);
+
+			var output = invokerInstance?.Output;
+
+
+			TwitchSimulationState simulationState = TwitchSimulationState.WaitingForCombat;
+			var errorstate = invokerInstance?.ErrorState ?? BobsBuddyErrorState.None;
+			if(errorstate != BobsBuddyErrorState.None)
+			{
+				switch(invokerInstance?.ErrorState)
+				{
+					case BobsBuddyErrorState.NotEnoughData:
+						simulationState = TwitchSimulationState.TooFewSimulations;
+						break;
+					case BobsBuddyErrorState.SecretsNotSupported:
+						simulationState = TwitchSimulationState.OpponentSecrets;
+						break;
+					case BobsBuddyErrorState.UnkownCards:
+						simulationState = TwitchSimulationState.UnknownCards;
+						break;
+					case BobsBuddyErrorState.UpdateRequired:
+						simulationState = TwitchSimulationState.UpdateRequired;
+						break;
+				}
+				return new Data.BobsBuddyState { SimulationState = simulationState };
+			}
+
+			if(output == null)
+			{
+				return new Data.BobsBuddyState
+				{
+					SimulationState = TwitchSimulationState.WaitingForCombat
+				};
+			}
+
+			var outputState = invokerInstance?.State;
+			switch(outputState)
+			{
+				case BobsBuddy.BobsBuddyState.Combat:
+					simulationState = TwitchSimulationState.InCombat;
+					break;
+				case BobsBuddy.BobsBuddyState.Shopping:
+					simulationState = TwitchSimulationState.InNonFirstShoppingPhase;
+					break;
+				case BobsBuddy.BobsBuddyState.Initial:
+					simulationState = TwitchSimulationState.WaitingForCombat;
+					break;
+				case null:	
+					simulationState = TwitchSimulationState.WaitingForCombat;
+					break;
+
+			}
+
+			return new Data.BobsBuddyState
+			{
+				PlayerLethalRate = output.theirDeathRate,
+				WinRate = output.winRate,
+				TieRate = output.tieRate,
+				LossRate = output.lossRate,
+				OpponentLethalRate = output.myDeathRate,
+				SimulationState = simulationState
 			};
 		}
 	}

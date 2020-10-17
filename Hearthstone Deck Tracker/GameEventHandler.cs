@@ -77,7 +77,7 @@ namespace Hearthstone_Deck_Tracker
 			if(!_handledGameEnd)
 			{
 				Log.Warn("Game end has not been handled");
-				HandleGameEnd();
+				HandleGameEnd(false);
 			}
 
 			Log.Info("Game is now in menu.");
@@ -245,7 +245,7 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(_game.IsBattlegroundsMatch && Config.Instance.RunBobsBuddy && _game.CurrentGameStats != null)
 			{
-				BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, _game.GetTurnNumber())
+				BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, _game.GetTurnNumber())?
 					.UpdateAttackingEntities(_attackingEntity, _defendingEntity);
 			}
 
@@ -345,8 +345,14 @@ namespace Hearthstone_Deck_Tracker
 			Log.Info($"--- {player} turn {turn.Item2} ---");
 			if(player == ActivePlayer.Player)
 			{
+				_game.Player.OnTurnStart();
 				HandleThaurissanCostReduction();
-				_game.SecretsManager.HandleTurnStart();
+				_game.SecretsManager.HandlePlayerTurnStart();
+			}
+			else if (player == ActivePlayer.Opponent)
+			{
+				_game.Opponent.OnTurnStart();
+				_game.SecretsManager.HandleOpponentTurnStart();
 			}
 			GameEvents.OnTurnStart.Execute(player);
 			if(_turnQueue.Count > 0)
@@ -355,7 +361,7 @@ namespace Hearthstone_Deck_Tracker
 			if(player == ActivePlayer.Player && !_game.IsInMenu)
 			{
 				if(_game.IsBattlegroundsMatch && _game.CurrentGameStats != null && turn.Item2 > 1)
-					BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, turn.Item2 - 1).StartShopping(true);
+					BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, turn.Item2 - 1)?.StartShopping(true);
 				switch(Config.Instance.TurnStartAction)
 				{
 						case HsActionType.Flash:
@@ -437,12 +443,12 @@ namespace Hearthstone_Deck_Tracker
 			Log.Info("Adventure was restarted. Simulating game end.");
 			HandleConcede();
 			HandleLoss();
-			HandleGameEnd();
+			HandleGameEnd(false);
 			HandleInMenu();
 		}
 
 #pragma warning disable 4014
-		public async void HandleGameEnd()
+		public async void HandleGameEnd(bool stateComplete)
 		{
 			try
 			{
@@ -456,9 +462,9 @@ namespace Hearthstone_Deck_Tracker
 				Core.Overlay.HideTimers();
 				DeckManager.ResetAutoSelectCount();
 				LiveDataManager.Stop();
-				if(_game.IsBattlegroundsMatch)
+				if(_game.IsBattlegroundsMatch && stateComplete)
 				{
-					BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, _game.GetTurnNumber())
+					BobsBuddyInvoker.GetInstance(_game.CurrentGameStats.GameId, _game.GetTurnNumber())?
 						.StartShopping(!_game.CurrentGameStats.WasConceded);
 				}
 				Log.Info("Game ended...");
@@ -466,6 +472,7 @@ namespace Hearthstone_Deck_Tracker
 				if(_game.CurrentGameMode == Spectator && _game.CurrentGameStats.Result == GameResult.None)
 				{
 					Log.Info("Game was spectator mode without a game result. Probably exited spectator mode early.");
+					Sentry.ClearBobsBuddyEvents();
 					return;
 				}
 				var player = _game.Entities.FirstOrDefault(e => e.Value?.IsPlayer ?? false).Value;
@@ -1240,7 +1247,7 @@ namespace Hearthstone_Deck_Tracker
 		void IGameHandler.HandleOpponentHeroPower(string cardId, int turn) => HandleOpponentHeroPower(cardId, turn);
 		void IGameHandler.TurnStart(ActivePlayer player, int turnNumber) => TurnStart(player, turnNumber);
 		void IGameHandler.HandleGameStart(DateTime timestamp) => HandleGameStart(timestamp);
-		void IGameHandler.HandleGameEnd() => HandleGameEnd();
+		void IGameHandler.HandleGameEnd(bool stateComplete) => HandleGameEnd(stateComplete);
 		void IGameHandler.HandleLoss() => HandleLoss();
 		void IGameHandler.HandleWin() => HandleWin();
 		void IGameHandler.HandleTied() => HandleTied();

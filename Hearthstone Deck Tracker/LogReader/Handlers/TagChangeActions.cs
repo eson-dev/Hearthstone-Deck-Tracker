@@ -65,8 +65,21 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 					return () => OnCardCopy(id, value, game, gameState);
 				case TAG_SCRIPT_DATA_NUM_1:
 					return () => OnTagScriptDataNum1(id, value, game, gameState);
+				case REBORN:
+					return () => OnRebornChange(id, value, game);
 			}
 			return null;
+		}
+
+		private void OnRebornChange(int id, int value, IGame game)
+		{
+			if(game.CurrentGameStats == null)
+				return;
+			if(game.CurrentGameMode != GameMode.Battlegrounds)
+				return;
+			if(value != 1)
+				return;
+			BobsBuddyInvoker.GetInstance(game.CurrentGameStats.GameId, game.GetTurnNumber())?.SetMinionReborn(id);
 		}
 
 		private void OnTagScriptDataNum1(int id, int value, IGame game, IHsGameState gameState)
@@ -83,7 +96,7 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 			if(!entity.IsHeroPower || entity.IsControlledBy(game.Player.Id))
 				return;
 
-			BobsBuddyInvoker.GetInstance(game.CurrentGameStats.GameId, game.GetTurnNumber())
+			BobsBuddyInvoker.GetInstance(game.CurrentGameStats.GameId, game.GetTurnNumber())?
 				.HeroPowerTriggered(entity.CardId);
 		}
 
@@ -100,6 +113,9 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 			{
 				targetEntity.CardId = entity.CardId;
 				targetEntity.Info.GuessedCardState = GuessedCardState.Guessed;
+
+				if(entity.GetTag(CREATOR_DBID) == Hearthstone.CardIds.KeyMasterAlabasterDbfId)
+					targetEntity.Info.Hidden = false;
 
 				gameState.GameHandler.HandleCardCopy();
 			}
@@ -185,7 +201,7 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 		{
 			if(value != (int)State.COMPLETE)
 				return;
-			gameState.GameHandler.HandleGameEnd();
+			gameState.GameHandler.HandleGameEnd(true);
 			gameState.GameEnded = true;
 		}
 
